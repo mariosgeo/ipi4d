@@ -4,7 +4,7 @@ function [kwn,kwnwi]=rwaven(amin,amax,num)
 % Ph.D Dissertation, Ruhr-University of Bochum, Germany, 196 pp, Appendix C
 % � Prof. Dr. Andreas Kemna
 % kemna@geo.uni-bonn.de
-% February 21, 2010   
+ 
 
 % amax=4;
 % amin=1;
