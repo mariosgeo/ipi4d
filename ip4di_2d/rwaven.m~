@@ -1,10 +1,5 @@
 function [kwn,kwnwi]=rwaven(amin,amax,num)
-% This function was coded by Prof. Dr. Andreas Kemna, 2000.
-% Kemna, A., 2000. Tomographic Inversion of Complex Resistivity-Theory and Application.
-% Ph.D Dissertation, Ruhr-University of Bochum, Germany, 196 pp, Appendix C
-% � Prof. Dr. Andreas Kemna
-% kemna@geo.uni-bonn.de
-% February 21, 2010   
+
 
 % amax=4;
 % amin=1;
