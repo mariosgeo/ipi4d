@@ -7,7 +7,7 @@
 % Author: Francois Lavoue', Colorado School of Mines
 % Version: October 15, 2015.
 
-function [input]=inversion_parameters(input)
+function [input]=plot_parameters(input)
 
 %---------------------%
 %    FORWARD PLOTS    %
