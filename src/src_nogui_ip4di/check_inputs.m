@@ -12,13 +12,13 @@ function [abort_flag]=check_inputs(input)
  % need to compute Jacobian to plot resolution
  if input.plot_resolution==1; input.jacobian_flag=2; end
 
- if input.atc_flag==1
+ if input.inv_flag>0 && input.atc_flag==1
     disp('ATC NOT IMPLEMENTED IN NO-GUI VERSION.');
     disp('Please set input.atc_flag=0.');
     abort_flag=1;   %terminate program
  end
 
- if input.image_guidance==1
+ if input.inv_flag>0 && input.image_guidance==1
     disp('IGI VIA 4-DIRECTIONAL SMOOTHING NOT VALIDATED YET.');
     disp('Please set input.image_guidance=0, 2 or 3.');
     abort_flag=1;   %terminate program

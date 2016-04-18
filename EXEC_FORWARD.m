@@ -26,12 +26,15 @@ define_paths;
 % DEFINE INPUT PARAMETERS
 input=[];   %init. input structure
 input=forward_parameters(input);
-input=inversion_parameters(input);
+%input=inversion_parameters(input);
 input=plot_parameters(input);
 
 % check inconsistencies in input parameters
 abort_flag=check_inputs(input);
-if(abort_flag==1); return; end   %terminate program
+if abort_flag==1
+   disp('CHECK INPUT PARAMETERS')
+   return
+end   %terminate program
 
 
 % CREATE ACQUI

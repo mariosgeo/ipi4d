@@ -14,10 +14,10 @@ function [input]=plot_parameters(input)
 %---------------------%
 
 % choose plot to show (1->yes, 0->no)
-input.plot_acqui=0;       % plot electrode location
-input.plot_full_acqui=0;  % plot locations of all electrode combinations
-input.plot_mesh=0;
-input.plot_model=0;       % plot model at various stage: input, interpolation, on mesh...
+input.plot_acqui=1;       % plot electrode location
+input.plot_full_acqui=1;  % plot locations of all electrode combinations
+input.plot_mesh=1;
+input.plot_model=1;       % plot model at various stage: input, interpolation, on mesh...
 input.plot_pseudosection=0;
 input.plot_jacobian=0;    % plot Jacobian movie wrt quadripole combinations
 input.plot_resolution=0;
