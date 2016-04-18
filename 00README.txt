@@ -189,7 +189,7 @@ the most important ones:
          plot the inversion results in a new session after resetting the environment
          variables (see section IGI).
 
-- Mesh: it is recommended to plot the mesh (using input.plot_mesh=0) in order to check
+- Mesh: it is recommended to plot the mesh (using input.plot_mesh=1) in order to check
         its consistency. In particular, when using small models (~1m), mesh generation
         may result in weird and useless refinement around some electrodes.
 
