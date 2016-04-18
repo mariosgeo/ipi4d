@@ -26,7 +26,6 @@ define_paths;
 % DEFINE INPUT PARAMETERS
 input=[];   %init. input structure
 input=forward_parameters(input);
-%input=inversion_parameters(input);
 input=plot_parameters(input);
 
 % check inconsistencies in input parameters
