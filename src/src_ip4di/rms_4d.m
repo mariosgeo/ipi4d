@@ -88,14 +88,14 @@ disp(sprintf('Normalized RMS = %f %%',fem.nrms));
 
 %compute weighted RMS of data misfit (with data weighting matrix Wd)
 % C = (dobs-dcal(m))' Wd (dobs-dcal(m))
-fem.wrms = (tmp_d4_obs-tmp_d4_cal)' * input.Wd * (tmp_d4_obs-tmp_d4_cal);
+fem.wrms = (tmp_d4_obs-tmp_d4_cal)' * input.Wd_d4 * (tmp_d4_obs-tmp_d4_cal);
 % convert weighted RMS in percentage of error
 fem.wrms = sqrt(fem.wrms/(input.num_mes*input.num_files))*100;
 disp(sprintf('Weighted RMS = %f %%',fem.wrms));
 
 %compute RMS of log misfit, as used in invert_cntr.m for inversion
 % C = [ log(dobs)-log(dcal(m)) ]' Wd [ log(dobs)-log(dcal(m)) ]
-fem.objf_data = fem.e' * input.Wd * fem.e;
+fem.objf_data = fem.e' * input.Wd_d4 * fem.e;
 
 % display log RMS and percentage of error
 % (does not convert fem.objf_data itself to preserve the quantity that is effectively minimized)

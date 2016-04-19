@@ -19,6 +19,14 @@
 
 function [mesh,fem,input]=invert_cntr(itr,ip_cnt,input,mesh,fem)
 
+disp(' ')
+disp('-----------------------------')
+disp('      ENTER INVERT_CNTR      ')
+disp(' compute gradient, Hessian,  ')
+disp(' and update model parameters ')
+disp('-----------------------------')
+disp(' ')
+
 %    /* ******************************************************** */
 %    /* *************    Error weighting	******************** */
 %    /* ******************************************************** */
@@ -292,9 +300,12 @@ function [mesh,fem,input]=invert_cntr(itr,ip_cnt,input,mesh,fem)
  for i=1:mesh.num_param
      if input.inv_flag==2 || input.inv_flag==6 || input.inv_flag==0 || input.inv_flag==5
      %if GN, GN-Difference, or ??
-        b=1;   % init. step length
-        a=10^(log10(mesh.res_param2(i)) + b*dx1(i));
 
+        % update using a crude linesearch to avoid negative imaginary parts
+        b=1;   % init. step length
+        a=10^( log10(mesh.res_param2(i)) + b*dx1(i) );
+
+        % (rough) linesearch
         if imag(a)>0
         %if imag. part of updated parameter is >0, then simply update
            mesh.res_param1(i)=a;
@@ -303,7 +314,7 @@ function [mesh,fem,input]=invert_cntr(itr,ip_cnt,input,mesh,fem)
         %then find a descent step b such that imag(m+b*dm)>0
            while (imag(a)<0)
               b=b/2; 
-              a=10^(log10(mesh.res_param2(i)) + b*dx1(i));
+              a=10^( log10(mesh.res_param2(i)) + b*dx1(i) );
            end
            mesh.res_param1(i)=a;
         end
@@ -319,7 +330,8 @@ function [mesh,fem,input]=invert_cntr(itr,ip_cnt,input,mesh,fem)
 %         10.^(log10(imag(input.real_data))))
 
      else
-     % if other optimization than GN, GN-Diff or ??
+     % if other optimization than GN, GN-Diff or ??,
+     % update perturbation only
         mesh.res_param1(i)=10^(dx1(i));
      end   %end if optimization type
 

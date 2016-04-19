@@ -37,9 +37,16 @@ function [fem,mesh]=d4_prepare_data(itr,input,mesh,fem)
 
         % define model covariance matrix
         if input.acb_flag==1
-            [ctc,fem.L1]=acb(input,mesh,fem);
+        % ACB: define a locally-varying Lagrangian distribution based on data resolution
+        %      and apply it to model covariance matrix
+           input.Wd = input.Wd_d4( (j-1)*input.num_mes+1 : j*input.num_mes , (j-1)*input.num_mes+1 : j*input.num_mes );
+           [ctc,fem.L1]=acb(input,mesh,fem);
         else
-            ctc=input.lagrn*eye(mesh.num_param);            
+        % keep the model covariance matrix as it is
+        %NB: do NOT include the scalar Lagrange multiplier here,
+        %    it will be applied later on, in kim_inversion2.m
+            %ctc=input.lagrn*eye(mesh.num_param);
+            ctc=mesh.ctc;
         end
 
         % store time-lapse model covariance matrix

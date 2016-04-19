@@ -1,7 +1,6 @@
 function [input]=read_4d_data(input)
 
  % read data file
- %FL: MUST FIGURE OUT THE EXACT FORMAT (seems to be a structure)
  tmp=importdata(input.mes_in);
  input.num_files=length(tmp);
  disp(sprintf('NB OF TIME-LAPSE EXPERIMENTS = %i',input.num_files))
@@ -106,11 +105,11 @@ if input.sip_flag==1 || input.ip_flag==1
 end
 
 
-%FL: what's the point of re-defining this?...
+% define single stdev_error (FL?)
 input.stdev_error=ones(input.num_mes,1);
 
 %input.Wd=diag(input.stden_error); 
-input.Wd=sparse(eye(input.num_files*input.num_mes)).^2;
+input.Wd_d4=sparse(eye(input.num_files*input.num_mes)).^2;
 
 
 

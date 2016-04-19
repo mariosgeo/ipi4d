@@ -104,11 +104,11 @@ if input.acb_flag==1
    fem.L1=L1;
 
 elseif input.acb_flag==0
-%else, just consider the input scalar Lagrangian multiplier
-%and keep the model covariance matrix as it is
+%else, keep the model covariance matrix as it is
+%NB: do NOT include the scalar Lagrange multiplier here,
+%    it will be applied later on, in invert_cntr.m
    Cm1=mesh.ctc;
 end
-
 
 % C_M(m) = m' Cm^-1 m
 fem.mrms = mesh.res_param1' * Cm1 * mesh.res_param1;

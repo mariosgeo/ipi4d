@@ -96,7 +96,7 @@ input.lagrn=0.01;                       % initial value of Lagrangian mutiplier
 % ACB = Active Constrained Balancing (Yi et al, 2003)
 % Assign Lagrangian between two limits values based on the resolutions of the parameters.
 % Use this choice in cases of borehole-data.
-input.acb_flag=0;
+input.acb_flag=1;
 
 % if acb_flag==1, specify range for Lagrangian multiplier
 input.lagrn_min=0.01;

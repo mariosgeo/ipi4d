@@ -33,8 +33,8 @@ if input.atc_flag==0
    %DU = (fem.A.'*input.Wd*fem.A + fem.CC + alpha*mesh.M'*mesh.M)\ (fem.A.'*input.Wd*fem.e - alpha*mesh.M'*mesh.M*log10(U));
 
    %dm =-(     Hessien data      + Hm     + Hessien time-reg )^-1 * (    Gradient data       +   Gradient model           )
-   %dm =-(     J'*      Wd*    J + Cm^-1  + gamma*      M'*M )^-1 * (   -J'*        Wd*  res +      lambda*Cm^-1*log(m) + gamma*     M'*M     *log(m)  )
-    DU =-(fem.A.'*input.Wd*fem.A + fem.CC + alpha*mesh.M'*mesh.M) \ (-fem.A.'*input.Wd*fem.e + input.lagrn*fem.CC*log10(U) + alpha*mesh.M'*mesh.M*log10(U));
+   %dm =-(     J'*      Wd   *    J + Cm^-1  + gamma*      M'*M )^-1 * (   -J'*        Wd   *  res +      lambda*Cm^-1*log(m) + gamma*     M'*M     *log(m)  )
+    DU =-(fem.A.'*input.Wd_d4*fem.A + fem.CC + alpha*mesh.M'*mesh.M) \ (-fem.A.'*input.Wd_d4*fem.e + input.lagrn*fem.CC*log10(U) + alpha*mesh.M'*mesh.M*log10(U));
 
 elseif input.atc_flag==1
 % use Active-Time Constraints
@@ -45,16 +45,22 @@ elseif input.atc_flag==1
     ACT=ACT.act;
 
    %dm =-(     Hessien data      + Hm     + Hessien ACT      )^-1 * (   Gradient data   +   Gradient ACT             )
-   %dm = (     J'*      Wd*    J + Cm^-1  +      M'*ACT*M    )^-1 * (J' *      Wd*  res -      M'*ACT*M     *log(m)  )
-    DU = (fem.A.'*input.Wd*fem.A + fem.CC + mesh.M'*ACT*mesh.M)\(fem.A.'*input.Wd*fem.e - mesh.M'*ACT*mesh.M*log10(U));
+   %dm = (     J'*      Wd   *    J + Cm^-1  +      M'*ACT*M    )^-1 * (J' *      Wd   *  res -      M'*ACT*M     *log(m)  )
+    DU = (fem.A.'*input.Wd_d4*fem.A + fem.CC + mesh.M'*ACT*mesh.M)\(fem.A.'*input.Wd_d4*fem.e - mesh.M'*ACT*mesh.M*log10(U));
 end
 
 
+% update model parameters
 for i=1:input.num_files*mesh.num_param
-%   U2(i,1)=10^(log10(U(i)) + DU(i));
+
+    %old update
+    %U2(i,1)=10^(log10(U(i)) + DU(i));
+
+    % new update (using a crude linesearch to avoid negative imaginary parts)
     b=1;   % init. step length
     a=10^(log10(U(i)) + b*DU(i));
 
+    % (rough) linesearch
     if imag(a)>0
     %if imag. part of updated parameter is >0, then simply update
        U2(i,1)=a;
@@ -71,7 +77,7 @@ for i=1:input.num_files*mesh.num_param
 end
 
 
-% update model parameters
+% recast updates
 for k=1:input.num_files
     mesh.d4_res_param1(:,k) = U2( (k-1)*mesh.num_param+1 : k*mesh.num_param,1 );
 end
