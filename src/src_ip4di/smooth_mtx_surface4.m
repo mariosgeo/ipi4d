@@ -137,7 +137,7 @@ if input.image_guidance==0
 elseif input.image_guidance==1
 % use image-guided covariance via four-dir. smoothing (initcm1)
 
-   [mesh,mesh.ctc]=initcm1(input,mesh,cx,cy,cd1,cd2);
+   [mesh]=initcm1(input,mesh,cx,cy,cd1,cd2);
 
 elseif input.image_guidance==2
 % use image-guidance covariance via local Laplacian (initcm2)

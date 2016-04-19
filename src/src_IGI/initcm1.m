@@ -13,7 +13,7 @@
 % 
 
 
-function [mesh,ctc]=initcm1(input,mesh,cx,cy,cd1,cd2)
+function [mesh]=initcm1(input,mesh,cx,cy,cd1,cd2)
 
  disp(' ')
  disp('======================')
@@ -384,8 +384,7 @@ import edu.mines.jtk.interp.*;
  ctc2=cy'*w2'*w2*cy;
  ctc3=cd1'*w3'*w3*cd1;
  ctc4=cd2'*w4'*w4*cd2;
- ctc = ctc1+ctc2+ctc3+ctc4; % this is the four-direction smoothing matrix
-
+ mesh.ctc = ctc1+ctc2+ctc3+ctc4; % this is the four-direction smoothing matrix
 
  % plot ellipses representing tensors
  ellipse
