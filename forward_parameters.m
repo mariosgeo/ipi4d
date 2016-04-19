@@ -23,23 +23,25 @@ disp(' ')
 %------------------%
 
 %% MESH
-input.read_mesh=0;   % 0 -> create mesh based on acquisition geometry (create_mesh3.m)
+input.read_mesh=1;   % 0 -> create mesh based on acquisition geometry (create_mesh3.m)
                      % 1 -> read previously-generated mesh in input file
 % file mesh_in is used if input.read_mesh==1
-input.file_mesh_in='data/does-not-exist';
+input.file_mesh_in='demodata/sandbox_inversion_multifreq/mesh_sandbox_inv_26layers_1cpe_pml0.5m.mat';
+%input.file_mesh_in='data/does-not-exist';
 % file mesh_out is written down anyway
-input.file_mesh_out=['mesh_sandbox_forward_4-cells-per-elec-spacing_51-layers.mat'];
+input.file_mesh_out=['mesh_sandbox_inversion_26-layers_1-cell-per-elec-spacing_pml0.5m.mat'];
 
 
 %% INPUT MODEL
 input.cmplx_format=1;        % I/0 format for models, 1->real/imag parts, 2->amp/phase
-input.interp_model_flag=1;   % 1->interpolate input model on forward mesh, other->don't (input model has to match the mesh, then)
-input.binary_model_flag=1;   % 1->round model such that it contains only 2 types of media (min/max of both real and imag. parts, specific to FL's case)
+input.interp_model_flag=0;   % 1->interpolate input model on forward mesh, other->don't (input model has to match the mesh, then)
+input.binary_model_flag=0;   % 1->round model such that it contains only 2 types of media (min/max of both real and imag. parts, specific to FL's case)
 input.mean_res_flag=1;       % 1->consider background value (ie 1st cell's value) as mean value, other->take mean value of entire model
                              %    /!\ The mean value has to be accurate for accurate solutions.
 
 % file_model_in contains the model for simulation and the initial model in case of inversion
-input.file_model_in=['demodata/sandbox_forward_f1Hz/model_sandbox_true_f1Hz_251x601_h0.002.dat'];
+input.file_model_in=['demodata/sandbox_inversion_f1Hz/model_sandbox_init_f1Hz_251x601_h0.002.dat'];
+%%%TO BE CHANGED
 
 % file_model_out contains the model that has been interpolated on the forward grid
 % if model is not interpolated (input.interp_model==0), then model_out is identical to model_in
@@ -47,13 +49,13 @@ input.file_model_out=['model_sandbox_true_f1Hz_interp-on-mesh-fwd_4cpe_51l.dat']
 
 
 %% DATA
-input.read_acqui=0;   % 0 -> create acquisition (ie combinations of quadripoles) based on input electrode locations
+input.read_acqui=1;   % 0 -> create acquisition (ie combinations of quadripoles) based on input electrode locations
                       % 1 -> read acquisition configuration in input file
 % input.mes_in is used to read acqui if read_acqui==1 
 % and to read observed data in case of inversion
-input.mes_in='data/does-not-exist.dat';
+input.mes_in='demodata/sandbox_inversion_test_time-lapse/data-obs_sandbox_freq-lapse.mat';
 % file acqui_out is written if read_acqui==0
-input.file_acqui_out='acqui_sandbox_24-electrodes_DP-DP.dat';
+input.file_acqui_out='no-need-here';
 
 % input.file_data_out will contain the calculated synthetic data
 input.file_data_out=['data-obs_sandbox_forward_f1Hz.dat'];
@@ -73,7 +75,7 @@ input.hstep=0.002;   % grid interval
 input.ncells_per_elec=1;   % nb of cells per electrode interval (set >1 to refine mesh laterally)
 input.depth_n=1;      %     0-> generates mesh automatically with irregular depth intervals
 if input.depth_n~=0   % not 0-> generate mesh with user-defined regular depth intervals
-   nlayers=51
+   nlayers=26;
    dz_layers=zmax/(nlayers-1);
    input.depth_n=[0:nlayers-1]*dz_layers;
 end

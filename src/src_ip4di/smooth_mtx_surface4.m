@@ -191,6 +191,7 @@ end
 if input.time_lapse_flag==1
 
    %% JZ's matrix for third-order differential operator
+   %%FL: dimensions are hard-coded, not sure how to use that...
    %mesh.M = spdiags([-ones(4125,1) 3*ones(4125,1) -3*ones(4125,1) ones(4125,1)],[0 375 750 1125],...
    %                  zeros(input.num_files*mesh.num_param,input.num_files*mesh.num_param));
    %mesh.M(3001:end,:)=0;

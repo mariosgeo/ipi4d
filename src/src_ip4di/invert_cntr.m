@@ -290,9 +290,9 @@ function [mesh,fem,input]=invert_cntr(itr,ip_cnt,input,mesh,fem)
  %------------------------------------------------------------------------------%
 
  for i=1:mesh.num_param
-     if input.inv_flag==2 ||input.inv_flag==6 || input.inv_flag==0 || input.inv_flag==5
+     if input.inv_flag==2 || input.inv_flag==6 || input.inv_flag==0 || input.inv_flag==5
      %if GN, GN-Difference, or ??
-        b=1; 
+        b=1;   % init. step length
         a=10^(log10(mesh.res_param2(i)) + b*dx1(i));
 
         if imag(a)>0

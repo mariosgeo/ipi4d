@@ -10,10 +10,10 @@ function [fem,mesh]=d4_prepare_data(itr,input,mesh,fem)
     fem.e=zeros(input.num_files*input.num_mes,1);
     fem.d4_array_model_data=zeros(input.num_mes,input.num_files);
 
-
     % loop over data sets
     for j=1:input.num_files       
 
+        % observed data
         input.real_data=input.d4_real_data(:,j);
 
         % update mesh properties with updated model parameters
@@ -29,21 +29,21 @@ function [fem,mesh]=d4_prepare_data(itr,input,mesh,fem)
         % store synthetic data
         fem.d4_array_model_data(:,j)=fem.array_model_data;
 
-        % store residuals
+        % store log residuals
         fem.e( (j-1)*input.num_mes+1 : j*input.num_mes, 1 ) = log10(input.d4_real_data(:,j))-log10(fem.array_model_data);     
 
         % store Jacobian matrices
         fem.A( (j-1)*input.num_mes+1 : j*input.num_mes, (j-1)*mesh.num_param+1 : j*mesh.num_param ) = fem.array_jacobian;     
 
-        %apply Lagrangian multiplier to model covariance matrix
+        % define model covariance matrix
         if input.acb_flag==1
             [ctc,fem.L1]=acb(input,mesh,fem);
         else
             ctc=input.lagrn*eye(mesh.num_param);            
         end
 
-        % store model covariance matrix
-        fem.CC( (j-1)*mesh.num_param+1 : j*mesh.num_param, (j-1)*mesh.num_param+1:j*mesh.num_param)= ctc;
+        % store time-lapse model covariance matrix
+        fem.CC( (j-1)*mesh.num_param+1 : j*mesh.num_param , (j-1)*mesh.num_param+1 : j*mesh.num_param ) = ctc;
 
      end
 

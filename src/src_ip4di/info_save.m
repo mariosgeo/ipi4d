@@ -67,8 +67,9 @@ if stf==0
 
     %in case of time-lapse inversion,
     if input.time_lapse_flag==1
-       final.num_files=input.num_files;                   %save nb of data files
-       final.d4_res_param1(:,:,itr)=mesh.d4_res_param;   %store all models vs. it.
+       final.num_files=input.num_files;                  %save nb of data files
+       final.d4_res_param1_vs_it(:,:,itr)=mesh.d4_res_param1;        %store all models vs. it.
+       final.d4_model_data_vs_it(:,:,itr)=fem.d4_array_model_data;   %save synthetic data vs. it
     end
 
 

@@ -20,7 +20,7 @@ disp(' ')
 
 
 % Perform sensitivity analysis?
-input.sensitivity_analysis_flag=1;   % 1->yes, 0->no
+input.sensitivity_analysis_flag=0;   % 1->yes, 0->no
 %if yes, user must edit file 'sensitivity_analysis.m'
 %to choose the varying parameter and its range.
 
@@ -55,7 +55,7 @@ input.file_final_struct='struct_final.dat';
 %------------------------%
 %  TIME-LAPSE INVERSION  %
 %------------------------%
-input.time_lapse_flag=0;   % 1->yes, 0->no
+input.time_lapse_flag=1;   % 1->yes, 0->no
 %FL: not implemented yet in no-GUI version,
 %    may cause run-time errors...
 
@@ -91,12 +91,12 @@ input.jacobian_flag=2;
 input.decrease_lagrn_flag=0;            % decrease lagrange multiplier during inversion (1->yes, 0->no)
 input.decrease_lagrn_reduction_flag=0;  % decrease lagrange multiplier reduction rate during inversion (1->yes (follow Marios' rule), 0->no)
 input.lagrn_reduction=2;                % reduction rate of lambda parameter during inversion (if input.decrease_lagrn_flag==1)
-input.lagrn=0.1;                        % initial value of Lagrangian mutiplier
+input.lagrn=0.01;                       % initial value of Lagrangian mutiplier
 
 % ACB = Active Constrained Balancing (Yi et al, 2003)
 % Assign Lagrangian between two limits values based on the resolutions of the parameters.
 % Use this choice in cases of borehole-data.
-input.acb_flag=1;
+input.acb_flag=0;
 
 % if acb_flag==1, specify range for Lagrangian multiplier
 input.lagrn_min=0.01;
@@ -135,7 +135,7 @@ input.stop_crit=1;
 input.conv_rate=1;
 
 % max nb of iterations
-input.itn=100;
+input.itn=2;
 
 
 %--------------------%
@@ -161,7 +161,7 @@ input.strike_dist=0;   %?? not used...
 %  IMAGE-GUIDED INVERSION  %
 %--------------------------%
 
-input.image_guidance=2;
+input.image_guidance=0;
 % 0-> don't use image-guidance
 % 1-> use initcm1.m and 4-dimensional smoothing (Zhou et al., 2014)
 % 2-> use initcm2.m and directional Laplacian filters

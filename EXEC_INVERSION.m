@@ -32,9 +32,14 @@ input=plot_parameters(input);
 abort_flag=check_inputs(input);
 if(abort_flag==1); return; end   %terminate program
 
+
 % READ ACQUI AND DATA
-input=read_data(input);
-%[input]=read_4d_data(input);
+if input.time_lapse_flag==0
+   input=read_data(input);
+else
+% time-lapse inversion
+   [input]=read_4d_data(input);
+end
 
 
 % CREATE MESH

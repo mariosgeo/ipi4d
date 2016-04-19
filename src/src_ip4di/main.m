@@ -82,9 +82,7 @@ if input.time_lapse_flag==0
             [input]=update_lagran(itr,ip_cnt,input);
 
             %plot updated model
-            if input.plot_model_vs_it==1
-               auto_contour(1,itr,ip_cnt,input,mesh,fem);
-            end
+            if(input.plot_model_vs_it==1); auto_contour(1,itr,ip_cnt,input,mesh,fem); end
 
             %save resolution and Jacobian matrices
             %(after model update because resolution is computed in invert_cntr.m)
@@ -127,7 +125,7 @@ elseif input.time_lapse_flag==1
             final=info_save(0,itr,ip_cnt,input,mesh,fem,final);
 
             %check exit signal
-            %(0->CONTINUE, 1->STOP, 2->invert last IP component and STOP)
+            %(0->CONTINUE, 1->STOP, 2->invert 2nd IP component and STOP)
             if (ex==1 || ex==2)
                final.itr=itr-1;
                if(ex==1); disp('********PROGRAM TERMINATION**********'); end
@@ -141,7 +139,7 @@ elseif input.time_lapse_flag==1
             [mesh]=kim_inversion2(input,mesh,fem);
 
             %plot updated model
-            auto_contour_4d(itr,input,mesh,fem);
+            if(input.plot_model_vs_it==1); auto_contour_4d(itr,input,mesh,fem); end
         end   %end for itr
 
         if itr==input.itn+1

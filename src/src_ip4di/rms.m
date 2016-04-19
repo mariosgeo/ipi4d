@@ -19,13 +19,11 @@
 %   3) some subsequent change of notations:
 %      - 'tsum' is now 'nrms' (normalized RMS),
 %      - 'fem.rms_sum1' is now 'fem.nrms',
-%      - 'fem.rms_sum2' is now 'fem.nrms2' (normalized RMS at previous iteration),
+%      - 'fem.rms_sum2' is now 'fem.nrms2' (normalized RMS at previous iteration, not used anymore, use fem.rms_crit2 instead),
 %   4) the definition of the locally-weighted ACB covariance matrix here rather than in
 %      invert_cntr.m because we need it to compute the model term of the objective function.
 
 function [ex,fem,mesh]=rms(itr,ip_cnt,input,mesh,fem)
-
-global textt
 
 % init. misfits for current iteration
 nrms=0;
@@ -45,9 +43,9 @@ fem.rms_crit=0;    % criterion considered for stopping optimization
 ex=0;
 
 
-%
-% COMPUTE DATA MISFIT
-%
+%------------------------------------%
+%        COMPUTE DATA MISFIT         %
+%------------------------------------%
 
 % Find RMS error
 for i=1:input.num_mes
@@ -59,7 +57,7 @@ for i=1:input.num_mes
     nrms=nrms+((input.real_data(i)-fem.array_model_data(i))'.*(input.real_data(i)-fem.array_model_data(i)))./(input.real_data(i)'*input.real_data(i));
 end
 
-% compute RMS of data misfit (without weight)
+% compute RMS of data misfit (without weight/normalization)
 % C = || dobs - dcal(m) ||^2
 fem.rms = (input.real_data-fem.array_model_data)' * (input.real_data-fem.array_model_data);
 % convert RMS in percentage of error
@@ -81,7 +79,7 @@ disp(sprintf('Weighted RMS = %f %%',fem.wrms));
 % C = [ log(dobs)-log(dcal(m)) ]' Wd [ log(dobs)-log(dcal(m)) ]
 fem.objf_data = (log10(input.real_data)-log10(fem.array_model_data))' * input.Wd * (log10(input.real_data)-log10(fem.array_model_data));
 % display log RMS and percentage of error
-% (does not convert fem.objf_data itself to conserve the quantity that is effectively minimized)
+% (does not convert fem.objf_data itself to preserve the quantity that is effectively minimized)
 disp(sprintf('LOG RMS = %f',fem.objf_data));
 disp(sprintf('LOG RMS = %f %%',sqrt(fem.objf_data/input.num_mes)*100));
 
@@ -123,9 +121,10 @@ disp(sprintf('C_M(log m) = %f',fem.objf_model));
 disp(sprintf('C_M(log m) = %f %%',sqrt(fem.objf_model/mesh.num_param)*100));
 
 
-%
-% COMPUTE TOTAL OBJECTIVE FUNCTION
-%
+%--------------------------------------%
+%   COMPUTE TOTAL OBJECTIVE FUNCTION   %
+%--------------------------------------%
+
 % C(m) = C_D(m) + lambda*C_M(m)
 fem.objf = fem.objf_data + input.lagrn*fem.objf_model;
 disp(' ')
@@ -180,7 +179,6 @@ if (fem.rms_crit>fem.rms_crit2 && itr>1)
     %else, exit signal 1 ==> program termination
         ex=1;
     end
-        
 end
 
 
@@ -189,8 +187,10 @@ rel_dec=abs((fem.rms_crit2-fem.rms_crit)/fem.rms_crit2);
 
 % Check convergence rate
 if ( rel_dec<(input.conv_rate/100) && itr>1)
-    disp(sprintf('Convergence is slower than user-defined rate of %f%%: crit(it-1) = %f, crit(it) = %f',input.conv_rate,fem.rms_crit2,fem.rms_crit));
-    disp(sprintf('                                                      nRMS(it-1) = %f, nRMS(it) = %f',fem.nrms,fem.nrms));
+    disp(sprintf('Convergence is slower than user-defined rate of %f%%: '...
+                 'crit(it-1) = %f, crit(it) = %f',input.conv_rate,fem.rms_crit2,fem.rms_crit));
+    disp(sprintf('                                                      '...
+                 'nRMS(it-1) = %f, nRMS(it) = %f',fem.nrms,fem.nrms));
     fem.rms_crit=fem.rms_crit2;
 
     if input.ip_flag==1 && ip_cnt==1
@@ -203,7 +203,7 @@ if ( rel_dec<(input.conv_rate/100) && itr>1)
 end
 
 
-if ex==0 || ex==1
+if ex==0   %|| ex==1   %FL commented 19 April 2016 (BUG in previous version??)
     %before going to next iteration,
     %update RMS, data and model of 'previous' iteration
     %(don't do it for ex==2, in order to invert the 2nd IP component
@@ -221,12 +221,12 @@ if itr==input.itn+1 && ex==0
     if input.ip_flag==1 && ip_cnt==1
     % If we have IP data update everything to continue with IP inversion
        ex=2;       
-       set(textt,'String','********IP INVERSION STARTS**********');drawnow
+       disp('********IP INVERSION STARTS**********');
 
     elseif input.ip_flag==0 || (input.ip_flag==1 && ip_cnt==2)
     % otherwise, terminate program
        ex=1;
-       set(textt,'String','********PROGRAM TERMINATION**********');drawnow
+       disp('********PROGRAM TERMINATION**********');
     end
 end
 

@@ -265,6 +265,9 @@ LOG OF PAST MODIFICATIONS:
     - ensure all function names well correspond to file names (e.g. plot_jacobian vs. pushbutton3_plot_jacobian.m),
     - remove all obsolete comments from Marios' version?
 
+  - time-lapse: make compatible with 
+    - ACB
+    - image-guidance
 
 - v0: October 25, 2015.
 

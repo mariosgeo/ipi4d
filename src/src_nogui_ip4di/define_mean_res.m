@@ -32,10 +32,10 @@ function mesh=define_mean_res(input,mesh)
     mesh.mean_res=(mean(10.^(log10(mesh.model_in))));
  end
 
-
- % output mean value
- val_mean_res=mesh.mean_res
-
+ if input.debug==1
+    % output mean value
+    val_mean_res=mesh.mean_res
+ end
 
  %FL: lines below were initially in create_mesh3.m
  %FL /!\ Default values must match homogeneous background,

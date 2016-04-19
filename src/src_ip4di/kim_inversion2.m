@@ -36,11 +36,9 @@ if input.atc_flag==0
    %dm =-(     J'*      Wd*    J + Cm^-1  + gamma*      M'*M )^-1 * (   -J'*        Wd*  res +      lambda*Cm^-1*log(m) + gamma*     M'*M     *log(m)  )
     DU =-(fem.A.'*input.Wd*fem.A + fem.CC + alpha*mesh.M'*mesh.M) \ (-fem.A.'*input.Wd*fem.e + input.lagrn*fem.CC*log10(U) + alpha*mesh.M'*mesh.M*log10(U));
 
-%FL DEBUG WARNING: SHOULD IT BE   gamma * M * log(m)   OR   gamma * M * log(m)   in the gradient???
-%   +++ INTRODUIRE L'ACB (APPLIQUER fem.L1 A fem.CC)
-
 elseif input.atc_flag==1
 % use Active-Time Constraints
+%FL: not implemented yet...
 
     % read ACT matrix
     ACT=load(input.par_nm);
@@ -54,12 +52,16 @@ end
 
 for i=1:input.num_files*mesh.num_param
 %   U2(i,1)=10^(log10(U(i)) + DU(i));
-    b=1; 
+    b=1;   % init. step length
     a=10^(log10(U(i)) + b*DU(i));
+
     if imag(a)>0
+    %if imag. part of updated parameter is >0, then simply update
        U2(i,1)=a;
 
     else 
+    %if imag. part of updated parameter is <0,
+    %then find a descent step b such that imag(m+b*dm)>0
        while (imag(a)<0)
           b=b/2; 
           a=10^(log10(U(i)) + b*DU(i));
@@ -69,20 +71,11 @@ for i=1:input.num_files*mesh.num_param
 end
 
 
+% update model parameters
 for k=1:input.num_files
-    mesh.d4_res_param1(:,k)= U2 ( (k-1)*mesh.num_param+1:k*mesh.num_param,1);   
+    mesh.d4_res_param1(:,k) = U2( (k-1)*mesh.num_param+1 : k*mesh.num_param,1 );
 end
 
-
-% 
-% for k=1:input.num_files
-%     for i=1:mesh.num_param
-%         if imag(mesh.d4_res_param1(i,k))>0 
-%             mesh.d4_res_param1(i,k)=complex(real(mesh.d4_res_param1(i,k)),-0.01);
-%         end
-%     end
-% end
-% 
 
 end   %end function
 
