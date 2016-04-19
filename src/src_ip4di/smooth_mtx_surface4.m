@@ -39,7 +39,7 @@ for i=1:mesh.num_param
         if ind~=length(tmp_x)
             if mesh.param_y(j)==current_y && mesh.param_x(j)==tmp_x(ind+1) 
                cx(i,j)=1;  
-%                cx(i,j)=sqrt(      (mesh.tmp_param(j,6)-mesh.tmp_param(j,5))/ ( mesh.tmp_param(j,1)-mesh.tmp_param(i,1)));
+               %cx(i,j)=sqrt(      (mesh.tmp_param(j,6)-mesh.tmp_param(j,5))/ ( mesh.tmp_param(j,1)-mesh.tmp_param(i,1)));
             end
         end
     end
@@ -49,8 +49,9 @@ for i=1:mesh.num_param
    cx(i,i)=-sum(cx(i,:));    
 end
 
+% covariance matrix
 ctc1=cx'*cx;
-        
+
 
 % build cy
 for i=1:mesh.num_param
@@ -63,7 +64,7 @@ for i=1:mesh.num_param
         if ind~=length(tmp_y)
             if mesh.param_y(j)==tmp_y(ind+1) && mesh.param_x(j)==current_x 
                cy(i,j)=1;  
-%                cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
+               %cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
             end
         end
     end
@@ -73,6 +74,7 @@ for i=1:mesh.num_param
    cy(i,i)=-sum(cy(i,:));    
 end
 
+% covariance matrix
 ctc2=cy'*cy;           
 
 
@@ -88,7 +90,7 @@ for i=1:mesh.num_param
         if indy~=length(tmp_y) && indx~=length(tmp_x)
             if mesh.param_y(j)==tmp_y(indy+1) && mesh.param_x(j)==tmp_x(indx+1) 
                cd1(i,j)=1;  
-%                cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
+               %cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
             end
         end
     end
@@ -98,6 +100,7 @@ for i=1:mesh.num_param
    cd1(i,i)=-sum(cd1(i,:));    
 end
 
+% covariance matrix
 ctc3=cd1'*cd1;  %from top left to bottom right 
 
 
@@ -113,7 +116,7 @@ for i=1:mesh.num_param
         if indy~=length(tmp_y) && indx~=1 
             if mesh.param_y(j)==tmp_y(indy+1) && mesh.param_x(j)==tmp_x(indx-1)
                cd2(i,j)=1;  
-%                cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
+               %cy(i,j)=sqrt(      (mesh.tmp_param(j,4)-mesh.tmp_param(j,3))/ ( mesh.param_y(j)-mesh.param_y(i)) );
             end
         end
     end
@@ -123,9 +126,11 @@ for i=1:mesh.num_param
    cd2(i,i)=-sum(cd2(i,:));    
 end
 
-ctc4=cd2'*cd2;       % from top right to bottom left 
+% covariance matrix
+ctc4=cd2'*cd2;   % from top right to bottom left 
 
 
+% build total covariance matrix
 if input.image_guidance==0
 % use classic covariance matrix
 
@@ -152,7 +157,6 @@ elseif input.image_guidance==3
    fid=fopen(input.file_covariance,'r');
       mesh.ctc=fread(fid,[mesh.m1*mesh.m2,mesh.m1*mesh.m2],'real*4');
    fclose(fid);
-
 end
 
 
@@ -170,8 +174,8 @@ end
 % end
 
 
-% This matrix has no meaning. I just calculate it so I can know the elements
-% that do not have zero. After this I can calcualte the S matrix (ACB, Kim)
+%MK: This matrix has no meaning. I just calculate it so I can know the elements
+%    that do not have zero. After this I can calcualte the S matrix (ACB, Kim)
 %c=cx+cy;
 c=mesh.ctc;
 
@@ -211,7 +215,72 @@ if input.time_lapse_flag==1
        end   %j
    end   %i
 
+   %FL: here we keep derivative form to be able to apply the matrix to ACT in the future (not implemented yet),
+   %    make sure to use the covariance form mesh.M'*mesh.M elsewhere (see rms_4d.m, kim_inversion2.m).
+
 end   %end if time-lapse
+
+
+% debug: plot matrices
+if input.plot_covariance_matrices==1
+   figure();
+   imagesc(cx);
+   title('Cx');
+   colorbar();
+
+   figure();
+   imagesc(ctc1);
+   title('C1=Cx''*Cx');
+   colorbar();
+
+   figure();
+   imagesc(cy);
+   title('Cy');
+   colorbar();
+
+   figure();
+   imagesc(ctc2);
+   title('C2=Cy''*Cy');
+   colorbar();
+
+   figure();
+   imagesc(cd1);
+   title('Cd1');
+   colorbar();
+
+   figure();
+   imagesc(ctc3);
+   title('C3=Cd1''*Cd1');
+   colorbar();
+
+   figure();
+   imagesc(cd2);
+   title('Cd2');
+   colorbar();
+
+   figure();
+   imagesc(ctc4);
+   title('C4=Cd2''*Cd2');
+   colorbar();
+
+   figure();
+   imagesc(mesh.ctc);
+   title('mesh.ctc');
+   colorbar();
+
+   if input.time_lapse_flag==1
+      figure();
+      imagesc(mesh.M);
+      title('mesh.M');
+      colorbar();
+
+      figure();
+      imagesc(mesh.M'*mesh.M);
+      title('mesh.M'' x mesh.M');
+      colorbar();
+   end   %end if time-lapse
+
+end
 
 end   %end function mesh=smooth_mtx_surface4(input,mesh)
 

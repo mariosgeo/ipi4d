@@ -119,26 +119,43 @@ disp(sprintf('C_M(log m) = %f',fem.objf_model));
 disp(sprintf('C_M(log m) = %f %%',sqrt(fem.objf_model/mesh.num_param)*100));
 
 
+%-----------------------------------%
+%      COMPUTE TIME-LAPSE TERM      %
+%-----------------------------------%
+
+% C_T(m) = log(m)' CT^-1 log(m)
+fem.objf_tl = log10(tmp_d4_mod)' * mesh.M'*mesh.M * log10(tmp_d4_mod);
+%fem.objf_tl= log10(tmp_d4_mod)'*mesh.M'*ACT*mesh.M*log10(tmp_d4_mod);   %in case of ACT... (not implemented)
+disp(sprintf('C_T(log m) = %f',fem.objf_tl));
+disp(sprintf('C_T(log m) = %f %%',sqrt(fem.objf_tl/mesh.num_param)*100));
+%FL: does it make much sense to express it in %?...
+
+
 %--------------------------------------%
 %   COMPUTE TOTAL OBJECTIVE FUNCTION   %
 %--------------------------------------%
 
-% C(m) = C_D(m) + lambda*C_M(m)
-fem.objf = fem.objf_data + input.lagrn*fem.objf_model;
+% C(m) = C_D(m) + lambda*C_M(m) + gamma*C_T(m)
+fem.objf = fem.objf_data + input.lagrn*fem.objf_model + input.gamma*fem.objf_tl;
+
 disp(' ')
 disp('---------------')
 disp(sprintf('C_D(m) = %f',fem.objf_data));
 disp(sprintf('C_M(m) = %f',fem.objf_model));
+disp(sprintf('C_T(m) = %f',fem.objf_tl));
 disp(sprintf('lambda*C_M(m) = %f',input.lagrn*fem.objf_model));
 disp(sprintf('lambda*C_M(m) / C_D(m) = %f',input.lagrn*fem.objf_model/fem.objf_data));
+disp(sprintf('gamma*C_T(m) = %f',input.gamma*fem.objf_tl));
+disp(sprintf('gamma*C_T(m) / C_D(m) = %f',input.gamma*fem.objf_tl/fem.objf_data));
 disp(sprintf('C(m) = %f',fem.objf));
 disp('---------------')
 disp(' ')
 
 
-%
-% CHOOSE STOPPING CRITERION
-%
+%-----------------------------------%
+%     CHOOSE STOPPING CRITERION     %
+%-----------------------------------%
+
 if input.stop_crit==1
    %use total objective function
    % (RECOMMENDED because it is the one we minimize in invert_cntr.m)
