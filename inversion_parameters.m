@@ -132,10 +132,10 @@ input.stop_crit=1;
 % minimum convergence rate
 % (in %: inversion stops if the relative decrease of the objective
 %  function between two iterations is smaller than this rate)
-input.conv_rate=1;
+input.conv_rate=10;
 
 % max nb of iterations
-input.itn=100;
+input.itn=5;
 
 
 %--------------------%

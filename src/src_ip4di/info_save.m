@@ -56,20 +56,23 @@ if stf==0
     final.RMS_vs_it(itr,:)=[itr fem.rms_crit ...
                                 fem.objf fem.objf_data fem.objf_model input.lagrn*fem.objf_model ...
                                 fem.rms fem.nrms fem.wrms fem.mrms];   %save misfits vs. it
-    final.res_param1_vs_it(:,itr)=mesh.res_param1;        %save models vs. it.
-    final.model_data_vs_it(:,itr)=fem.array_model_data;   %save synthetic data vs. it
-    final.acb(:,itr)=1;   %FL: ??
+
+    if input.time_lapse_flag==0
+       final.res_param1_vs_it(:,itr)=mesh.res_param1;        % save models vs. it.
+       final.model_data_vs_it(:,itr)=fem.array_model_data;   % save synthetic data vs. it
+       final.array_model_data=fem.array_model_data;          % update current synthetic data
+
+    else   % time-lapse
+       final.num_files=input.num_files;                              % save nb of data files
+       final.d4_res_param1_vs_it(:,:,itr)=mesh.d4_res_param1;        % store all models vs. it.
+       final.d4_model_data_vs_it(:,:,itr)=fem.d4_array_model_data;   % save synthetic data vs. it
+       final.d4_model_data=fem.d4_array_model_data;                  % update current synthetic data
+    end
 
     %in case of ACB, save Lagrangian distributions vs. it.
     if input.acb_flag==1
-        final.ACB(:,itr)=fem.L1;
-    end
-
-    %in case of time-lapse inversion,
-    if input.time_lapse_flag==1
-       final.num_files=input.num_files;                  %save nb of data files
-       final.d4_res_param1_vs_it(:,:,itr)=mesh.d4_res_param1;        %store all models vs. it.
-       final.d4_model_data_vs_it(:,:,itr)=fem.d4_array_model_data;   %save synthetic data vs. it
+       final.ACB(:,itr)=fem.L1;
+       %FL: this will correspond to the last dataset in case of time-lapse...
     end
 
 
@@ -111,8 +114,6 @@ if stf==0
        if input.time_lapse_flag==0
           fprintf(dattxt,'ITR \t C(m) \t C_D(m) \t C_M(m) \t l*C_M(m) \t l*C_M/C_D \t nRMS (%%) \t LAMBDA \n');
        else   %time-lapse output (FL: syntax is not great, but output fits in a 13" screen...)
-          %fprintf(dattxt,'ITR \t\b\b\b C(m) \t\b  C_D(m) \t\b\b\b\b\b C_M(m) \t\b l*C_M(m) \t\b\b\b\b\b l*C_M/C_D \t\b\b\b C_T(m) \t\b\b\b g*C_T(m) \t\b\b\b g*C_T/C_D \t\b\b\b nRMS (%%) \t\b\b\b LAMBDA \n');
-          %fprintf(dattxt,'ITR    C(m)        C_D(m)      C_M(m)       l*C_M(m)     l*C_M/C_D    C_T(m)     g*C_T(m)   g*C_T/C_D  nRMS (%)   LAMBDA\n');
           fprintf(dattxt,'ITR\t C(m)\t\t C_D(m)\t\t C_M(m)\t\t l*C_M(m)\t l*C_M/C_D\t C_T(m)\t\t g*C_T(m)\t g*C_T/C_D\t nRMS (%%)\t LAMBDA \n');
 
        end
@@ -123,8 +124,6 @@ if stf==0
     end
 
     % print info for current iteration
-    %fprintf(dattxt,'INV_TYPE= %d DATAFILE= %s RMS= %f ITR= %d LGRN= %f NUM_PARAM= %d NUM_MEAS= %d\n',...
-    %               input.inv_flag,input.mes_in,fem.nrms2,itr-1,input.lagrn,mesh.num_param,input.num_mes);
     if input.time_lapse_flag==0
        %               ITR  C(m)  C_D   C_M l*C_M l*C_M/C_D nRMS LGRN
        fprintf(dattxt,'%i \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', ...
@@ -133,9 +132,7 @@ if stf==0
                        fem.nrms,input.lagrn);
 
     else   %time-lapse output
-       %               ITR   C(m) C_D  C_M  l*C_M l*C_M/C_D C_T g*C_T g*C_T/C_D  nRMS  LAMBDA
-       %fprintf(dattxt,'%i \t\b\b\b %f \t\b  %f \t\b\b\b\b\b %f \t\b %f \t\b\b\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \n', ...
-       %fprintf(dattxt,'%i3    %f    %f    %f    %f    %f    %f    %f    %f    %f    %f\n', ...
+       %               ITR C(m) C_D C_M l*C_M l*C_M/C_D C_T g*C_T g*C_T/C_D nRMS LAMBDA
        fprintf(dattxt,'%i\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f \n', ...
                        itr-1, fem.objf, fem.objf_data,...
                        fem.objf_model, input.lagrn*fem.objf_model, input.lagrn*fem.objf_model/fem.objf_data,...
@@ -146,7 +143,7 @@ if stf==0
     %close info file
     fclose(dattxt);
 
-end   %end if stf==0
+end   %end if stf==0 (intermediate iteration case)
 
 
 if stf==1
@@ -159,7 +156,14 @@ if stf==1
        final.resolution_vs_it(:,itr)=diag(fem.resolution_matrix);             %save resolution matrix vs. it. (diagonal only)
        final.resolution_data_vs_it(:,itr)=diag(fem.resolution_matrix_data);   %save data resolution matrix vs. it. (diagonal only)
        final.jacobian_vs_it(:,:,itr)=fem.array_jacobian;                      %save Jacobian matrix vs. it.
-    %FL: and what about time-lapse inversion?
+
+    else   % time-lapse
+       for j=1:input.num_files
+          %FL: to implement in kim_inversion2.m...
+          %final.resolution_4d_vs_it(:,j,itr)=diag(fem.resolution_matrix_4d);
+          %final.resolution_data_4d_vs_it(:,j,itr)=diag(fem.resolution_matrix_data_4d);
+          final.jacobian_4d_vs_it(:,:,j,itr)=fem.A( (j-1)*input.num_mes+1 : j*input.num_mes, (j-1)*mesh.num_param+1 : j*mesh.num_param );
+       end
     end
 
 end
@@ -181,7 +185,7 @@ if stf==0 && input.print_intermediate_results==1
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       if input.bgr_res_flag==0
-      %case where we don't use a background model (FL: and what ifwe do?...)
+      %case where we don't use a background model (FL: and what if we do?...)
 
          if input.dc_flag==1
          % DC data
@@ -233,10 +237,44 @@ if stf==0 && input.print_intermediate_results==1
 
 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-   elseif input.time_lapse_flag==1
-   % TIME-LAPSE INVERSION
+   elseif input.time_lapse_flag==2
+   %FL: TIME-LAPSE INVERSION CASE: STILL TO BE IMPLEMENTED...
 
-   %FL: TO DO
+      if input.bgr_res_flag==0
+      %case where we don't use a background model (FL: and what if we do?...)
+
+         if input.sip_flag==1
+         % SIP data and models
+
+            if input.cmplx_format==1
+            %save real and imaginary part of reconstructed resistivity at all iterations
+               Mts=[mesh.param_x,mesh.param_y];
+               for iitr=1:itr
+                   Mts=[Mts , real(final.res_param1_vs_it(:,itr)) , imag(final.res_param1_vs_it(:,itr))];
+               end
+            elseif input.cmplx_format==2
+            %save amplitude and phase of reconstructed resistivity at all iterations
+               Mts=[mesh.param_x,mesh.param_y];
+               for iitr=1:itr
+                   Mts=[Mts , abs(mesh.res_param1_vs_it(:,itr)) , 1000*atan2(imag(mesh.res_param1_vs_it(:,itr)),real(mesh.res_param1_vs_it(:,itr))) ];
+               end
+            end
+            save(input.file_model_inter,'Mts','-ascii');
+
+            % output obs vs synthetic data for all iterations
+            if input.cmplx_format==1
+            %save real and imaginary part of synthetic apparent resistivity
+               Mts=[ ones(input.num_mes,1),input.ax,input.az,input.bx,input.bz,input.mx,input.mz,input.nx,input.nz,...
+                     real(input.real_data),imag(input.real_data),real(final.model_data_vs_it),imag(final.model_data_vs_it) ];
+            elseif input.cmplx_format==2
+            %save amplitude and phase of synthetic apparent resistivity
+               Mts=[ ones(input.num_mes,1),input.ax,input.az,input.bx,input.bz,input.mx,input.mz,input.nx,input.nz,...
+                     abs(       input.real_data),1000*atan2(imag(       input.real_data),real(       input.real_data)),...
+                     abs(final.model_data_vs_it),1000*atan2(imag(final.model_data_vs_it),real(final.model_data_vs_it)) ];
+            end
+            save(input.file_data_inv_inter,'Mts','-ascii')
+         end   %end if data_flag
+      end   %end if bgr_res_flag==0
 
    end   %end non-time-lapse vs time-lapse inversion
 
@@ -336,6 +374,17 @@ if stf==3   %Final iteration case:
    end   %end if time_lapse_flag==0 (FL: and what about time-lapse results??)
           
 end   %end if stf=3 (=end of inversion)
+
+
+% SAVE ENTIRE STRUCTURES OF VARIABLES
+% FL: quite heavy but at least, we save all infos...
+if input.output_variables==1
+   save('input_struct_inter.mat','input');
+   save('mesh_struct_inter.mat','mesh');
+   save('final_struct_inter.mat','final');
+   %save(input.file_fem_struct,'fem');   %except fem because really to heavy
+   % (interesting variables have been saved in final anyway)
+end
 
 
 end   %end function info_save

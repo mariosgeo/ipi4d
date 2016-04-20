@@ -122,6 +122,9 @@ elseif input.time_lapse_flag==1
 
             %compute misfit
             [ex,fem,mesh]=rms_4d(itr,ip_cnt,input,mesh,fem);
+
+            %update variables and print intermediate results
+            %for current iteration (before model update)
             final=info_save(0,itr,ip_cnt,input,mesh,fem,final);
 
             %check exit signal

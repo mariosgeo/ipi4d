@@ -26,7 +26,7 @@ disp(' ')
 input.read_mesh=1;   % 0 -> create mesh based on acquisition geometry (create_mesh3.m)
                      % 1 -> read previously-generated mesh in input file
 % file mesh_in is used if input.read_mesh==1
-input.file_mesh_in='demodata/sandbox_inversion_multifreq/mesh_sandbox_inv_26layers_1cpe_pml0.5m.mat';
+input.file_mesh_in='demodata/sandbox_inversion_test_time-lapse/mesh_sandbox_inv_26layers_1cpe_pml0.5m.mat';
 %input.file_mesh_in='data/does-not-exist';
 % file mesh_out is written down anyway
 input.file_mesh_out=['mesh_sandbox_inversion_26-layers_1-cell-per-elec-spacing_pml0.5m.mat'];
@@ -40,7 +40,7 @@ input.mean_res_flag=1;       % 1->consider background value (ie 1st cell's value
                              %    /!\ The mean value has to be accurate for accurate solutions.
 
 % file_model_in contains the model for simulation and the initial model in case of inversion
-input.file_model_in=['demodata/sandbox_inversion_multifreq/model_sandbox_init_multifreq.mat'];
+input.file_model_in=['demodata/sandbox_inversion_test_time-lapse/model_sandbox_init_multifreq.mat'];
 %%%TO BE CHANGED
 
 % file_model_out contains the model that has been interpolated on the forward grid
@@ -53,7 +53,7 @@ input.read_acqui=1;   % 0 -> create acquisition (ie combinations of quadripoles)
                       % 1 -> read acquisition configuration in input file
 % input.mes_in is used to read acqui if read_acqui==1 
 % and to read observed data in case of inversion
-input.mes_in='demodata/sandbox_inversion_multifreq/data-obs_sandbox_freq-lapse.mat';
+input.mes_in='demodata/sandbox_inversion_test_time-lapse/data-obs_sandbox_freq-lapse.mat';
 % file acqui_out is written if read_acqui==0
 input.file_acqui_out='no-need-here';
 
