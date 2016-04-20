@@ -11,5 +11,5 @@ for ifile=1:nfiles
 end
 
 % save 3rd-order tensor as a Mat file
-save('time-lapse_data.mat','time_lapse_data');
+save('time-lapse_input.mat','time_lapse_data');
 %(needs to be read using importdata)

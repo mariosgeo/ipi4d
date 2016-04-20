@@ -1,7 +1,7 @@
 #!/bin/bash
 
-ls_file_in=ls_data_files.txt
-file_out=data-obs_sandbox_multifreq.mat
+ls_file_in=ls_model_files.txt
+file_out=model_sandbox_init_multifreq.mat
 
 nfiles=$(wc <$ls_file_in | awk '{print $1}')
 echo $nfiles > tmp_nfiles.txt
@@ -14,8 +14,8 @@ do
 done <$ls_file_in
 
 # create and save 3rd-order tensor with Matlab
-matlab -nosplash -nodisplay -nodesktop < make_time_lapse_data_file.m > tmp_log.out
-mv time-lapse_data.mat $file_out
+matlab -nosplash -nodisplay -nodesktop < make_time_lapse_input_file.m > tmp_log.out
+mv time-lapse_input.mat $file_out
 
 # clean
 rm tmp*
