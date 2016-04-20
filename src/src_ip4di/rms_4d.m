@@ -223,8 +223,9 @@ if ex==0
     %update RMS, data and model of 'previous' iteration
     %(don't do it for ex==2, in order to invert the 2nd IP component
     % with the current model and data)
-    mesh.d4_res_param2=mesh.d4_res_param1;
+    fem.rms_crit2=fem.rms_crit;
     fem.nrms2=fem.nrms;
+    mesh.d4_res_param2=mesh.d4_res_param1;
     fem.d4_array_model_data2=fem.d4_array_model_data;
 end
 
