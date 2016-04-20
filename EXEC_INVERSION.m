@@ -46,12 +46,16 @@ end
 mesh=create_mesh3(input);
 
 
-% DEFINE MEAN AND BACKGROUND VALUES
-mesh=define_mean_res(input,mesh);
+if input.time_lapse_flag==0
+   % define mean and background values
+   mesh=define_mean_res(input,mesh);
 
-
-% DEFINE INITIAL MODEL
-[input,mesh]=edit_model(input,mesh);
+   % define initial model
+   [input,mesh]=edit_model(input,mesh);
+else
+   % define time-lapse initial model
+   [input,mesh]=init_4d_model(input,mesh);
+end
 
 
 if input.sensitivity_analysis_flag==1

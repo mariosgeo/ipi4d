@@ -93,12 +93,29 @@ if stf==0
     if itr==1
     % open info file for first time
        dattxt=fopen(input.file_info,'wt');
-       fprintf(dattxt,'INV TYPE = %d (%s), ACB = %d, NB PARAM = %d, NB DATA = %d, DATA FILE = %s\n\n', ...
-                       input.inv_flag,input.inv_name,input.acb_flag,mesh.num_param, input.num_mes, input.mes_in);
-       if input.image_guidance>0
-       fprintf(dattxt,'                                                           TI FILE = %s\n\n', input.training_image)
+       if input.time_lapse_flag==0
+          fprintf(dattxt,'NB PARAM = %d, NB DATA = %d, INV TYPE = %d (%s), ACB = %d \n\n', ...
+                          mesh.num_param,input.num_mes,input.inv_flag,input.inv_name,input.acb_flag);
+       else   %time-lapse output
+          fprintf(dattxt,'NB PARAM = %d, NB DATA = %d, INV TYPE = %d (%s), ACB = %d, GAMMA = %f \n\n', ...
+                          mesh.num_param,input.num_mes,input.inv_flag,input.inv_name,input.acb_flag,input.gamma);
        end
-       fprintf(dattxt,'ITR \t C(m) \t\t C_D(m) \t C_M(m) \t l*C_M(m) \t l*C_M/C_D \t LGRN \t\t nRMS (%%) \n');
+
+       % print data file
+       fprintf(dattxt,'DATA FILE = %s\n\n', input.mes_in);
+
+       if input.image_guidance>0
+          fprintf(dattxt,'TI FILE = %s\n\n', input.training_image)
+       end
+
+       if input.time_lapse_flag==0
+          fprintf(dattxt,'ITR \t C(m) \t C_D(m) \t C_M(m) \t l*C_M(m) \t l*C_M/C_D \t nRMS (%%) \t LAMBDA \n');
+       else   %time-lapse output (FL: syntax is not great, but output fits in a 13" screen...)
+          %fprintf(dattxt,'ITR \t\b\b\b C(m) \t\b  C_D(m) \t\b\b\b\b\b C_M(m) \t\b l*C_M(m) \t\b\b\b\b\b l*C_M/C_D \t\b\b\b C_T(m) \t\b\b\b g*C_T(m) \t\b\b\b g*C_T/C_D \t\b\b\b nRMS (%%) \t\b\b\b LAMBDA \n');
+          %fprintf(dattxt,'ITR    C(m)        C_D(m)      C_M(m)       l*C_M(m)     l*C_M/C_D    C_T(m)     g*C_T(m)   g*C_T/C_D  nRMS (%)   LAMBDA\n');
+          fprintf(dattxt,'ITR\t C(m)\t\t C_D(m)\t\t C_M(m)\t\t l*C_M(m)\t l*C_M/C_D\t C_T(m)\t\t g*C_T(m)\t g*C_T/C_D\t nRMS (%%)\t LAMBDA \n');
+
+       end
 
     else
     % add new info line to file
@@ -108,9 +125,23 @@ if stf==0
     % print info for current iteration
     %fprintf(dattxt,'INV_TYPE= %d DATAFILE= %s RMS= %f ITR= %d LGRN= %f NUM_PARAM= %d NUM_MEAS= %d\n',...
     %               input.inv_flag,input.mes_in,fem.nrms2,itr-1,input.lagrn,mesh.num_param,input.num_mes);
-    %               ITR  C(m)  C_D   C_M l*C_M l*C_M/C_D LGRN nRMS 
-    fprintf(dattxt,'%d \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', ...
-                    itr-1,fem.objf,fem.objf_data,fem.objf_model,input.lagrn*fem.objf_model,input.lagrn*fem.objf_model/fem.objf_data,input.lagrn,fem.nrms);
+    if input.time_lapse_flag==0
+       %               ITR  C(m)  C_D   C_M l*C_M l*C_M/C_D nRMS LGRN
+       fprintf(dattxt,'%i \t %f \t %f \t %f \t %f \t %f \t %f \t %f \n', ...
+                       itr-1,fem.objf,fem.objf_data,...
+                       fem.objf_model,input.lagrn*fem.objf_model,input.lagrn*fem.objf_model/fem.objf_data,...
+                       fem.nrms,input.lagrn);
+
+    else   %time-lapse output
+       %               ITR   C(m) C_D  C_M  l*C_M l*C_M/C_D C_T g*C_T g*C_T/C_D  nRMS  LAMBDA
+       %fprintf(dattxt,'%i \t\b\b\b %f \t\b  %f \t\b\b\b\b\b %f \t\b %f \t\b\b\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \t\b\b\b %f \n', ...
+       %fprintf(dattxt,'%i3    %f    %f    %f    %f    %f    %f    %f    %f    %f    %f\n', ...
+       fprintf(dattxt,'%i\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f\t %f \n', ...
+                       itr-1, fem.objf, fem.objf_data,...
+                       fem.objf_model, input.lagrn*fem.objf_model, input.lagrn*fem.objf_model/fem.objf_data,...
+                       fem.objf_tl,    input.gamma*fem.objf_tl,    input.gamma*fem.objf_tl/fem.objf_data,...
+                       fem.nrms, input.lagrn);
+    end
 
     %close info file
     fclose(dattxt);

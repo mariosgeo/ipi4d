@@ -232,7 +232,16 @@ CURRENT BUGS AND FUTURE MODIFICATIONS:
 ----------------------------------------------------------------------------
 LOG OF PAST MODIFICATIONS:
 
-- v1: March 2, 2016 (most recent version)
+- v2: April 20, 2016 (most recent version)
+
+  - time-lapse inversion is now operational, and compatible with ACB and image guidance.
+    (Active Time Constraints, ACT, are not implemented yet)
+
+  - correct shells detected by Cecile Finco (Geosciences Montpellier)
+    concerning the name of some routines.
+
+
+- v1: March 2, 2016
 
   - correct src/src_ip4di/info_save.m:
     - remove useless loop over nb of param and data
@@ -265,9 +274,8 @@ LOG OF PAST MODIFICATIONS:
     - ensure all function names well correspond to file names (e.g. plot_jacobian vs. pushbutton3_plot_jacobian.m),
     - remove all obsolete comments from Marios' version?
 
-  - time-lapse: make compatible with 
-    - ACB
-    - image-guidance
+  - output intermediate results during inversion (such that we have them, at least, in case of crash).
+
 
 - v0: October 25, 2015.
 

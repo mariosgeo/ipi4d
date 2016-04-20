@@ -60,7 +60,7 @@ input.time_lapse_flag=1;   % 1->yes, 0->no
 %    may cause run-time errors...
 
 % regularize wrt time (or frequency if considering SIP data)
-input.gamma=0;                  % Lagrangian multiplier related to time regularization
+input.gamma=0.01;               % Lagrangian multiplier related to time regularization
 input.time_smoothing_order=2;   % order of differential operator used for smoothing
 
 % Use Active Time-Constrained regularization (ATC)
@@ -135,7 +135,7 @@ input.stop_crit=1;
 input.conv_rate=1;
 
 % max nb of iterations
-input.itn=2;
+input.itn=100;
 
 
 %--------------------%
@@ -161,14 +161,14 @@ input.strike_dist=0;   %?? not used...
 %  IMAGE-GUIDED INVERSION  %
 %--------------------------%
 
-input.image_guidance=0;
+input.image_guidance=2;
 % 0-> don't use image-guidance
 % 1-> use initcm1.m and 4-dimensional smoothing (Zhou et al., 2014)
-% 2-> use initcm2.m and directional Laplacian filters
+% 2-> use initcm2.m and directional Laplacian filters (Lavoue et al., in prep)
 % 3-> read covariance matrix in a file
 
 % image-guided interpolation of final model (1->yes, 0->no)
-input.image_guided_interpolation=1;
+input.image_guided_interpolation=0;
 
 % if input.image_guidance==1 or 2, use training image
 % size of training image
@@ -178,7 +178,7 @@ input.n2_TI=601;   %nx
 input.hstep=0.002;
 
 % file name for training image
-input.training_image=['demodata/image_sandbox_251x601_h0.002.bin'];
+input.training_image=['demodata/sandbox_inversion_f1Hz/image_sandbox_251x601_h0.002.bin'];
 
 % if input.image_guidance==3, read covariance matrix in a file
 input.file_covariance='data/does-not-exist';

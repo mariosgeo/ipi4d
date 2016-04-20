@@ -40,7 +40,7 @@ input.mean_res_flag=1;       % 1->consider background value (ie 1st cell's value
                              %    /!\ The mean value has to be accurate for accurate solutions.
 
 % file_model_in contains the model for simulation and the initial model in case of inversion
-input.file_model_in=['demodata/sandbox_inversion_f1Hz/model_sandbox_init_f1Hz_251x601_h0.002.dat'];
+input.file_model_in=['demodata/sandbox_inversion_multifreq/model_sandbox_init_multifreq.mat'];
 %%%TO BE CHANGED
 
 % file_model_out contains the model that has been interpolated on the forward grid
@@ -53,7 +53,7 @@ input.read_acqui=1;   % 0 -> create acquisition (ie combinations of quadripoles)
                       % 1 -> read acquisition configuration in input file
 % input.mes_in is used to read acqui if read_acqui==1 
 % and to read observed data in case of inversion
-input.mes_in='demodata/sandbox_inversion_test_time-lapse/data-obs_sandbox_freq-lapse.mat';
+input.mes_in='demodata/sandbox_inversion_multifreq/data-obs_sandbox_freq-lapse.mat';
 % file acqui_out is written if read_acqui==0
 input.file_acqui_out='no-need-here';
 

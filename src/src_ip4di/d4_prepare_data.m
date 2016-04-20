@@ -16,12 +16,18 @@ function [fem,mesh]=d4_prepare_data(itr,input,mesh,fem)
         % observed data
         input.real_data=input.d4_real_data(:,j);
 
-        % update mesh properties with updated model parameters
+        % model parameters
+        mesh.res_param1=mesh.d4_res_param1(:,j);
+
+        % outside model, adapt background to mean_res value
+        mesh.prop(1:mesh.num_elements)=mesh.mean_res_4d(j);
+        mesh.mean_res=mesh.mean_res_4d(j);
+
+        % inside model, update mesh properties with updated model parameters
         for i=1:mesh.num_param
             ind= mesh.icon(4,:)==i;
             mesh.prop(ind)=mesh.d4_res_param1(i,j);
         end
-        mesh.res_param1=mesh.d4_res_param1(:,j);
 
         % SOLVE FORWARD PROBLEM
         fem=mes_control_fast(itr,input,mesh,fem,j);

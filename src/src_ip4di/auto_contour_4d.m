@@ -1,6 +1,5 @@
 function auto_contour_4d(itr,input,mesh,fem)
 
-global tim
 %------------------Colormaps----------------------------------------------
 map(1,:)=[0 0 128/255];
 map(2,:)=[0 0 170/255];
@@ -21,11 +20,8 @@ map(16,:)=[132/255 0 64/255];
 map(17,:)=[96/255 0/255 96/255];
 map(18,:)=[255/255 255/255 255/255];
 
-
-
 cmap=cptcmap('GMT_seis');
 cmap=cmap(end:-1:1,:); %MARIOS ADD IN
-
 
 
 if input.sip_flag==0 % Plots for DC and IP
@@ -42,62 +38,58 @@ elseif input.sip_flag==1 % Plots for SIP
 end
 
 
-
-
-
 min_c=min(min(tmp));
 max_c=max(max(tmp));
+
+% loop over time-lapse datasets
 for k=1:input.num_files
-
-
-
+ figure()
  tmp2=tmp(:,k);    
  ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y,tmp2);
  ZII = ZI(mesh.xxx,mesh.yyy);
- contourf(tim(k),mesh.xxx,mesh.yyy,ZII,'lineStyle','None');
- title(tim(k),['Amplitude. Iteration ',num2str(itr),' Model ',num2str(k),' normalized RMS = ',num2str(fem.nrms)]);
- caxis (tim(k),[min_c max_c]);
+ contourf(mesh.xxx,mesh.yyy,ZII,'lineStyle','None');
+ title(['Amplitude. Iteration ',num2str(itr),' Model ',num2str(k),' normalized RMS = ',num2str(fem.nrms)]);
+ caxis ([min_c max_c]);
  colormap(cmap)
- xlabel(tim(k),'Distance (m)');
- ylabel(tim(k),'Depth (m)');
- xlim(tim(k),[mesh.min_x mesh.max_x]);
- ylim(tim(k),[-mesh.max_y -mesh.min_y]);
+ xlabel('Distance (m)');
+ ylabel('Depth (m)');
+ xlim([mesh.min_x mesh.max_x]);
+ ylim([-mesh.max_y -mesh.min_y]);
  
  if k==input.num_files
      colorbar('Location','EastOutside');
  end
  
 end
-
-
 
 
 if input.sip_flag==1 || input.ip_flag==1 && ip_cnt==2
    
-    min_c=min(min(tmp1));
-max_c=max(max(tmp1));
-    for k=1:input.num_files
+   min_c=min(min(tmp1));
+   max_c=max(max(tmp1));
 
+   % loop over time-lapse datasets
+   for k=1:input.num_files
 
-
- tmp2=tmp1(:,k);    
- ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y,tmp2);
- ZII = ZI(mesh.xxx,mesh.yyy);
- contourf(tim(k+input.num_files),mesh.xxx,mesh.yyy,ZII,'lineStyle','None');
- title(tim(k+input.num_files),['Phase. Iteration ',num2str(itr),' Model ',num2str(k)]);
- caxis (tim(k+input.num_files),[min_c max_c]);
- colormap(cmap)
- xlabel(tim(k+input.num_files),'Distance (m)');
- ylabel(tim(k+input.num_files),'Depth (m)');
- xlim(tim(k+input.num_files),[mesh.min_x mesh.max_x]);
- ylim(tim(k+input.num_files),[-mesh.max_y -mesh.min_y]);
+      figure()
+      tmp2=tmp1(:,k);    
+      ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y,tmp2);
+      ZII = ZI(mesh.xxx,mesh.yyy);
+      contourf(mesh.xxx,mesh.yyy,ZII,'lineStyle','None');
+      title(['Phase. Iteration ',num2str(itr),' Model ',num2str(k)]);
+      caxis ([min_c max_c]);
+      colormap(cmap)
+      xlabel('Distance (m)');
+      ylabel('Depth (m)');
+      xlim([mesh.min_x mesh.max_x]);
+      ylim([-mesh.max_y -mesh.min_y]);
  
- if k==input.num_files
-     colorbar('Location','EastOutside');
- end
- 
-    end
+      if k==input.num_files
+         colorbar('Location','EastOutside');
+      end
+
+   end
 
 end
 
-end
+end   %end function auto_contour_4d

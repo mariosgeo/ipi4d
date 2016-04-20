@@ -135,7 +135,7 @@ elseif input.time_lapse_flag==1
             %update Lagragian multiplier
             [input]=update_lagran(itr,ip_cnt,input);
 
-            %???
+            %update model parameters
             [mesh]=kim_inversion2(input,mesh,fem);
 
             %plot updated model

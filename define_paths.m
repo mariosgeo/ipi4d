@@ -23,6 +23,7 @@ javaaddpath('src/java-src')
 % path to Dave Hale's JTK and IDH libraries
 % (to be changed according to user's system)
 LIB_PATH='/usr/local/lib/';
+LIB_PATH='/home/lavouef/git/';
 javaaddpath([LIB_PATH 'idh/bench/build/classes'])
 javaaddpath([LIB_PATH 'jtk/build/libs/edu_mines_jtk.jar'])
 javaaddpath([LIB_PATH 'jtk/libs/arpack-java.jar'])

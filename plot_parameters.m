@@ -38,6 +38,7 @@ input.pseudo_plot=0;
 input.plot_ellipses=0;
 input.plot_model_vs_it=0;
 input.plot_interpolated_model=0;
+input.plot_covariance_matrices=0;
 
 
 %-------------------------------%

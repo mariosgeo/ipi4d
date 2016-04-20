@@ -215,22 +215,28 @@ messy code versions:
 ----------------------------------------------------------------------------
 CURRENT BUGS AND FUTURE MODIFICATIONS:
 
-- /!\ Time-lapse inversion still in progress:
-      - parameter update in kim_inversion2.m should be validated (a model term is missing).
-      - compatibility with ACB (Active Constrained Balancing) must be implemented.
-- /!\ ACT (Active Time Constraints) not validated
-      (the GUI routine preprocessing.m should be adapted for use without the GUI).
 - /!\ IP inversion not validated (should be OK but there might be bugs concerning
       the inversion of the 2nd component, ip_cnt=2).
+- /!\ ACT (Active Time Constraints) not implemented
+      (the GUI routine preprocessing.m should be adapted for use without the GUI).
 
 - make compatible with Octave:
   - avoid reference to importdata function (use 'load' instead),
   - find an alternative to the obsolete tsearch function
     for the generation of the mesh (mesh2d/meshfaces.m, l.199).
+  Or rather use Julia? (see with MK)
 
 
 ----------------------------------------------------------------------------
 LOG OF PAST MODIFICATIONS:
+
+- v2: April 20, 2016 (most recent version)
+
+  - time-lapse inversion is now operational, and compatible with ACB and image guidance.
+    (Active Time Constraints, ACT, are not implemented yet)
+
+  - correct shells detected by Cecile Finco (Geosciences Montpellier)
+    concerning the name of some routines.
 
 - v1: March 2, 2016 (most recent version)
 
