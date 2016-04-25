@@ -227,9 +227,14 @@ ly. Here are the most important ones:
   around some electrodes.
 
 - Time-lapse:
-    See the example folder 'benchmarks/sandbox_inversion_multifreq/data'
+  - See the example folder 'benchmarks/sandbox_inversion_multifreq/data'
   to create time-lapse data and models input files, using the scripts
   'make_time-lapse_*.sh' (which can also be found in 'tools/').
+  - Intermediate data and models are not printed out in (x,z,v) format.
+  It is thus recommended to output the structures containing the varia-
+  bles at all intermediate iterations (input.output_variables=1 in in-
+  version_parameters.m) to avoid loosing results in case of a crash be-
+  fore the end of the inversion.
 
 
 ------------------------------------------------------------------------
