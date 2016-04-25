@@ -1,37 +1,44 @@
+------------------------------------------------------------------------
 
- IMAGE-GUIDED IP4DI without Graphical User Interface
-    IGI   -   IP4DI   -   no GUI
+                          PACKAGE IP4DI
 
-Authors: Marios Karaoulis, Colorado School of Mines (marios.karaoulis@gmail.com)
-         Jieyi Zhou, Colorado School of Mines (jyzhou1990@gmail.com)
-         Francois Lavoue, Colorado School of Mines (francois.lavoue@ens-lyon.org)
+Simulation and inversion of DC or transient, time-lapse electrical data.
+
+------------------------------------------------------------------------
+
+Authors:
+ Marios Karaoulis, Colorado School of Mines (marios.karaoulis@gmail.com)
+ Jieyi Zhou, Colorado School of Mines (jyzhou1990@gmail.com)
+ Francois Lavoue, Colorado School of Mines (francois.lavoue@ens-lyon.org)
+ Andre Revil, Colorado School & CNRS (andre.revil@univ-smb.fr)
 
 Copyright @Authors, All rights reserved.
 
-Redistribution and use in source and binary forms, with or
-without modification, are permitted provided that the following
-conditions are met:
 
-    *  Redistributions of source code must retain the above copyright
-       notice, this list of conditions and the following disclaimer.
-    *  Redistributions in binary form must reproduce the above
-       copyright notice, this list of conditions and the following
-       disclaimer in the documentation and/or other materials provided
-       with the distribution.
-    *  All redistributions of the source code or binary form must
-       be done in agreement of the Author's diffusion policy for
-       restricted access softwares or with specific written permission.
-    *  Neither the name of the Authors nor the names of their institutions
-       may be used to endorse or promote products derived from this
-       software without specific prior written permission.
-    *  In your publications using this code, please refer to
-         "Karaoulis M., Revil A., Tsourlos P., Werkema D. and Minsley B. (2013).
-          IP4DI: A software for time-lapse 2D/3D DC-resistivity and induced
-          polarization tomography. Computers & Geosciences, 54:164-170."
-       and (if using the image-guided inversion approach) to
-         "Zhou J., Revil A., Karaoulis M., Hale D., Doetsch J. and Cuttler S. (2014).
-          Image-guided inversion of electrical resistivity data.
-          Geophysical Journal International, 197(1):292-309."
+Redistribution and use in source and binary forms, with or without modi-
+fication, are permitted provided that the following conditions are met:
+
+  *  Redistributions of source code must retain the above copyright
+     notice, this list of conditions and the following disclaimer.
+  *  Redistributions in binary form must reproduce the above
+     copyright notice, this list of conditions and the following
+     disclaimer in the documentation and/or other materials provided
+     with the distribution.
+  *  All redistributions of the source code or binary form must
+     be done in agreement of the Author's diffusion policy for
+     restricted access softwares or with specific written permission.
+  *  Neither the name of the Authors nor the names of their institu-
+     tions may be used to endorse or promote products derived from
+     this software without specific prior written permission.
+  *  In your publications using this code, please refer to
+      "Karaoulis M., Revil A., Tsourlos P., Werkema D. and Minsley B.
+       (2013). IP4DI: A software for time-lapse 2D/3D DC-resistivity and
+       induced polarization tomography. Computers & Geosciences, 54:164-
+       170."
+     and (if using the image-guided inversion approach) to
+      "Zhou J., Revil A., Karaoulis M., Hale D., Doetsch J. and Cuttler
+       S. (2014). Image-guided inversion of electrical resistivity data.
+       Geophysical Journal International, 197(1):292-309."
 
 Warranty Disclaimer:
 THIS SOFTWARE IS PROVIDED BY THE AUTHORS "AS IS" AND ANY EXPRESS OR 

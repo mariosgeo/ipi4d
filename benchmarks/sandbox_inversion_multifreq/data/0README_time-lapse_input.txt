@@ -1,5 +1,5 @@
 To create the unique time-lapse data file required for time-lapse
-inversion, first list your individual data files in a file:
+inversion, first list your individual data files:
 $ ls data-obs_*.dat >ls_data_files.txt
 
 Then run
