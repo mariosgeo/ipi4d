@@ -1,5 +1,4 @@
 Readme file for the IP4DI inversion.
-Two foldels coresponds for the 2.5D and 3D inversion.
  
 Start matlab. Set the present working directory to the folder you extracted the files.
 
@@ -10,3 +9,6 @@ Type inversion_results to process and display the output inversion file.
 Type preprocessing to create the Active time constraind model.
 
 Some demo files can be found inside the demodata subfolder.
+
+Marios Karaoulis, 2013
+marios.karaoulis@gmail.com
