@@ -1,0 +1,36 @@
+TOTAL NB OF FILES = 36
+NB OF DIFFERING FILES = 19
+
+% significant changes
+Files /home/lavoue/git/ip4di/ip4di_2d/create_mesh3.m and ./create_mesh3.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/forward_modelling.m and ./forward_modelling.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/main.m and ./main.m differ
+
+% SIGNIFICANT CHANGES: use initcm1 or initcm2
+Files /home/lavoue/git/ip4di/ip4di_2d/smooth_mtx_surface4.m and ./smooth_mtx_surface4.m differ
+
+% significant changes: load input and mesh structures previously generated
+Files /home/lavoue/git/ip4di/ip4di_2d/start.m and ./start.m differ
+
+
+
+% significant changes?
+Files /home/lavoue/git/ip4di/ip4di_2d/kim_inversion2.m and ./kim_inversion2.m differ
+
+% non-significant changes?
+Files /home/lavoue/git/ip4di/ip4di_2d/mes_control_fast.m and ./mes_control_fast.m differ
+
+% other notations and comments but no significant changes
+Files /home/lavoue/git/ip4di/ip4di_2d/invert_cntr.m and ./invert_cntr.m differ
+
+% non-significant changes
+Files /home/lavoue/git/ip4di/ip4di_2d/acb.m and ./acb.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/auto_contour.m and ./auto_contour.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/auto_contour_4d.m and ./auto_contour_4d.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/cptcmap.m and ./cptcmap.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/d4_prepare_data.m and ./d4_prepare_data.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/inversion_parameters.m and ./inversion_parameters.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/inversion_results.m and ./inversion_results.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/rms.m and ./rms.m differ
+Files /home/lavoue/git/ip4di/ip4di_2d/update_lagran.m and ./update_lagran.m differ
+
