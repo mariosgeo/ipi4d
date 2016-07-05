@@ -254,6 +254,9 @@ LOG OF PAST MODIFICATIONS:
      and as the self-standing program 'tools/post_inversion_image_guided_interpolation.m').
 
 
+- v0: October 25, 2015.
+
+
 //!\\ BELOW IN PROGRESS...
       Modifications should be benchmarked against inversion results backed up from HGPSuper at
       /Volumes/WD3_NTFS/BACKUP_HGPSUPER/02_PROJET_REVIL/02_CODE/06_SIP_INVERSION
@@ -276,7 +279,10 @@ LOG OF PAST MODIFICATIONS:
 
   - output intermediate results during inversion (such that we have them, at least, in case of crash).
 
+  - Sinon, j'ai  vu une petite erreur dans la fonction auto_contour.
+    A la ligne 47, ny et vy sont definis et apres dans le reshape (l 48 et 50), il y a nz et vz (qui ne sont du coup pas definis).
+    C'est probablement une option que tu n'utilises pas, je crois que cette erreur etair deja dans la version de Marios.
+      Cecile Finco, 26 April 2016
 
-- v0: October 25, 2015.
 
 
