@@ -55,9 +55,7 @@ input.file_final_struct='struct_final.dat';
 %------------------------%
 %  TIME-LAPSE INVERSION  %
 %------------------------%
-input.time_lapse_flag=1;   % 1->yes, 0->no
-%FL: not implemented yet in no-GUI version,
-%    may cause run-time errors...
+input.time_lapse_flag=0;   % 1->yes, 0->no
 
 % regularize wrt time (or frequency if considering SIP data)
 input.gamma=0.01;               % Lagrangian multiplier related to time regularization
