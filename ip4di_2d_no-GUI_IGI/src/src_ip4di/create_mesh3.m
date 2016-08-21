@@ -86,117 +86,6 @@ end   %end function create_mesh
 
 
 
-function mesh=geometrical_factor(input,mesh)
-
-% include first topography in ax and az coordinates
-% for i=1:input.num_mes
-%     for j=1:length(mesh.anaglyfo_data(:,1))
-%         if input.ax(i)==mesh.anaglyfo_data(j,1)
-%             input.az(i)=input.az(i)-anaglyfo_data(j,2);
-%         end
-%         if input.bx(i)==mesh.anaglyfo_data(j,1)
-%             input.bz(i)=input.bz(i)-anaglyfo_data(j,2);
-%         end
-%         if input.mx(i)==mesh.anaglyfo_data(j,1)
-%             input.mz(i)=input.mz(i)-anaglyfo_data(j,2);
-%         end
-%         if input.nx(i)==mesh.anaglyfo_data(j,1)
-%             input.nz(i)=input.nz(i)-anaglyfo_data(j,2);
-%         end
-%     end
-% end
-
-%Find the geometrical factor
-VAM=zeros(input.num_mes,1);
-VAN=zeros(input.num_mes,1);
-VBM=zeros(input.num_mes,1);
-VBN=zeros(input.num_mes,1);
-
-
-for i=1:input.num_mes
-    if(input.m_array_type(i)==1 || input.m_array_type(i)==2)
-         aflag=1; bflag=1; mflag=1; nflag=1;
-    end
-
-    %/* flag for Pole-dipole array */
-    if(input.m_array_type(i)==2)
-        aflag=1; bflag=0; mflag=1; nflag=1;
-    end
-
-    %/* flag for Pole-pole */
-    if(input.m_array_type(i)==3)
-          aflag=1; mflag=1; bflag=0; nflag=0;
-    end
-    
-    
-    if(aflag*mflag~=0)
-      r1=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (input.az(i)-input.mz(i))*(input.az(i)-input.mz(i)) );
-      r2=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (-input.az(i)-input.mz(i))*(-input.az(i)-input.mz(i)) );
-      VAM(i)=(r1+r2)./(r1.*r2.*4*pi);
-    end
-
-    if(aflag*nflag~=0)
-      r1=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (input.az(i)-input.nz(i))*(input.az(i)-input.nz(i)) );
-      r2=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (-input.az(i)-input.nz(i))*(-input.az(i)-input.nz(i)) );
-      VAN(i)=(r1+r2)./(r1.*r2.*4*pi); 
-    end
-
-    if(bflag*mflag~=0)
-      r1=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (input.bz(i)-input.mz(i))*(input.bz(i)-input.mz(i)) );
-      r2=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (-input.bz(i)-input.mz(i))*(-input.bz(i)-input.mz(i)) );
-      VBM(i)= (r1+r2)./(r1.*r2.*4*pi); 
-    end
-
-    if(bflag*nflag~=0)
-      r1=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (input.bz(i)-input.nz(i))*(input.bz(i)-input.nz(i)) );
-      r2=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (-input.bz(i)-input.nz(i))*(-input.bz(i)-input.nz(i)) );
-      VBN(i)= (r1+r2)./(r1.*r2.*4*pi); 
-    end
-end   %end for
-
-mesh.geofac=1./(VAM-VBM-VAN+VBN);
-clear VAM;clear VBM;clear VAN;clear VBN;clear r1;clear r2;
-
-
-if input.data_type==2 
-%if input data are resistances, convert them to resistivities
-   input.real_data=input.real_data.*mesh.geofac;
-   %pause
-end
-
-
-if input.time_lapse_flag==1
-    ind=find (input.d4_real_data<0);
-    if size(ind,1)~=0 && size(ind,2)~=-0
-        display('Negative resistivities in measurements');
-        ind
-        pause
-    end   
-
-%FL /!\ Default values must match homogeneous background,
-%       otherwise solution is wrong
-% (now defined in separate routine define_mean_res.m)
-%%    mesh.mean_res=mean(mean(10.^(log10(input.d4_real_data))));  
-    
-elseif input.time_lapse_flag==0
-    ind=find (input.real_data<0);
-    if size(ind,1)~=0 && size(ind,2)~=-0
-        display('Negative resistivities in measurements');
-        ind
-        pause
-    end    
-
-%FL /!\ Default values must match homogeneous background,
-%       otherwise solution is wrong
-% (now defined in separate routine define_mean_res.m)
-%%    mesh.mean_res=(mean(10.^(log10(input.real_data))));
-
-end   %end if time_lapse_flag
-
-end   %end function mesh=geometrical_factor(input,mesh)
-
-
-
 % The main idea for this function is to calculate the basic dimensions of
 % the mesh. I need to find the surface electrodes, the borehole electrodes,
 % the positions of the electrodes etc. If for some reason a borehole is on
@@ -1198,4 +1087,120 @@ mesh.y_tmp=y_tmp;
 
 end   %end function mesh=create_mesh_grid(input,mesh)
 
+
+
+%----------------------------------------------------------------------%
+%
+%   FUNCTION geometrical_factor: compute the geometrical factor K for
+%                                each quadripole.
+%
+%----------------------------------------------------------------------%
+function mesh=geometrical_factor(input,mesh)
+
+% include first topography in ax and az coordinates
+% for i=1:input.num_mes
+%     for j=1:length(mesh.anaglyfo_data(:,1))
+%         if input.ax(i)==mesh.anaglyfo_data(j,1)
+%             input.az(i)=input.az(i)-anaglyfo_data(j,2);
+%         end
+%         if input.bx(i)==mesh.anaglyfo_data(j,1)
+%             input.bz(i)=input.bz(i)-anaglyfo_data(j,2);
+%         end
+%         if input.mx(i)==mesh.anaglyfo_data(j,1)
+%             input.mz(i)=input.mz(i)-anaglyfo_data(j,2);
+%         end
+%         if input.nx(i)==mesh.anaglyfo_data(j,1)
+%             input.nz(i)=input.nz(i)-anaglyfo_data(j,2);
+%         end
+%     end
+% end
+
+%Find the geometrical factor
+VAM=zeros(input.num_mes,1);
+VAN=zeros(input.num_mes,1);
+VBM=zeros(input.num_mes,1);
+VBN=zeros(input.num_mes,1);
+
+
+for i=1:input.num_mes
+    if(input.m_array_type(i)==1 || input.m_array_type(i)==2)
+         aflag=1; bflag=1; mflag=1; nflag=1;
+    end
+
+    %/* flag for Pole-dipole array */
+    if(input.m_array_type(i)==2)
+        aflag=1; bflag=0; mflag=1; nflag=1;
+    end
+
+    %/* flag for Pole-pole */
+    if(input.m_array_type(i)==3)
+          aflag=1; mflag=1; bflag=0; nflag=0;
+    end
+
+
+    if(aflag*mflag~=0)
+      r1=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (input.az(i)-input.mz(i))*(input.az(i)-input.mz(i)) );
+      r2=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (-input.az(i)-input.mz(i))*(-input.az(i)-input.mz(i)) );
+      VAM(i)=(r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(aflag*nflag~=0)
+      r1=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (input.az(i)-input.nz(i))*(input.az(i)-input.nz(i)) );
+      r2=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (-input.az(i)-input.nz(i))*(-input.az(i)-input.nz(i)) );
+      VAN(i)=(r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(bflag*mflag~=0)
+      r1=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (input.bz(i)-input.mz(i))*(input.bz(i)-input.mz(i)) );
+      r2=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (-input.bz(i)-input.mz(i))*(-input.bz(i)-input.mz(i)) );
+      VBM(i)= (r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(bflag*nflag~=0)
+      r1=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (input.bz(i)-input.nz(i))*(input.bz(i)-input.nz(i)) );
+      r2=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (-input.bz(i)-input.nz(i))*(-input.bz(i)-input.nz(i)) );
+      VBN(i)= (r1+r2)./(r1.*r2.*4*pi);
+    end
+end   %end for
+
+mesh.geofac=1./(VAM-VBM-VAN+VBN);
+clear VAM;clear VBM;clear VAN;clear VBN;clear r1;clear r2;
+
+
+if input.data_type==2
+%if input data are resistances, convert them to resistivities
+   input.real_data=input.real_data.*mesh.geofac;
+   %pause
+end
+
+
+if input.time_lapse_flag==1
+    ind=find (input.d4_real_data<0);
+    if size(ind,1)~=0 && size(ind,2)~=-0
+        display('Negative resistivities in measurements');
+        ind
+        pause
+    end
+
+%FL /!\ Default values must match homogeneous background,
+%       otherwise solution is wrong
+% (now defined in separate routine define_mean_res.m)
+%%    mesh.mean_res=mean(mean(10.^(log10(input.d4_real_data))));
+
+elseif input.time_lapse_flag==0
+    ind=find (input.real_data<0);
+    if size(ind,1)~=0 && size(ind,2)~=-0
+        display('Negative resistivities in measurements');
+        ind
+        pause
+    end
+
+%FL /!\ Default values must match homogeneous background,
+%       otherwise solution is wrong
+% (now defined in separate routine define_mean_res.m)
+%%    mesh.mean_res=(mean(10.^(log10(input.real_data))));
+
+end   %end if time_lapse_flag
+
+end   %-- end function mesh=geometrical_factor(input,mesh)
 
