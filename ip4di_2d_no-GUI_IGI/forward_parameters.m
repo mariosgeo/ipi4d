@@ -32,6 +32,11 @@ input.file_mesh_in='benchmarks/sandbox_inversion_multifreq/data/mesh_sandbox_inv
 input.file_mesh_out=['mesh_sandbox_inversion_26-layers_1-cell-per-elec-spacing_pml0.5m.mat'];
 
 
+%% TOPO
+input.topo_flag=0;
+input.file_topo_in='data/topo.dat';
+
+
 %% INPUT MODEL
 input.cmplx_format=1;        % I/0 format for models, 1->real/imag parts, 2->amp/phase
 input.interp_model_flag=0;   % 1->interpolate input model on forward mesh, other->don't (input model has to match the mesh, then)

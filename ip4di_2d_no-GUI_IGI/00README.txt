@@ -174,18 +174,27 @@ NB: if input.interp_model_flag=0, input model must match the mesh, with
        xA zA xB zB xM zM xN zN data_DC                 % DC data
   or   xA zA xB zB xM zM xN zN Re(data)  Im(data)      % SIP data (input.cmplx_flag=1)
   or   xA zA xB zB xM zM xN zN amp(data) phase(data)   % SIP data (input.cmplx_flag=2)
-    Values can be specified in terms of resistivities (input.data_type=1)
+    Data values can be specified in terms of resistivities (input.data_type=1)
   or resistances (input.data_type=2).
     For pole-pole or pole-dipole arrays, columns for B and N electrodes
   must be present but their coordinates must be identical for all data
   points (just put 0).
-    IP4DI can also read Res2Dinv data files (set input.res2d_flag=1 in
-  forward_parameters.m).
+
+  NB: z-coordinates must NOT contain topography. They must correspond to
+      depth below  (if >0) or elevation above (if <0) the topographic
+      surface, such that IP4DI can distinguish between surface (z=0) and
+      borehole (z=/=0) electrodes. Topography is provided separately
+      (see below).
 
 - Output data are delivered in the same format.
   If input.print_intermediate_results=1 is selected in
   inversion_parameters.m, synthetic data computed at intermediate
   iterations are appended in additional columns.
+
+- Topography must be specified in an input ASCII file of 2 columns with
+  x and z coordinates of topographic surface. If topographic points gi-
+  ven as input do not match electrode locations, topography will be li-
+  nearly interpolated at electrode and mesh node locations.
 
 - After mesh generation, a mesh file is delivered containing the Matlab
   structure of all mesh variables. This file can be read using
@@ -204,7 +213,8 @@ NB: if input.interp_model_flag=0, input model must match the mesh, with
   ponding image is assumed to span in the range [0:(nz-1)*h,0:(nx-1)*h]
   in the referential of IP4DI model, with h the grid step of the trai-
   ning image (which is generally more finely discretized than the re-
-  constructed model to capture the structures of interest).
+  constructed model to capture the structures of interest, hence the
+  storage in binary format to avoid large files).
 
 
 ------------------------------------------------------------------------
@@ -244,6 +254,9 @@ KNOWN BUGS
       bugs concerning the inversion of the 2nd component, ip_cnt=2).
 - /!\ ACT (Active Time Constraints) are not implemented (the GUI routine
       preprocessing.m should be adapted for use without the GUI).
+- IP4DI GUI version can also read Res2Dinv data files (input.res2d_flag=1
+  in forward_parameters.m). This functionality is not guaranteed in the
+  IGI no-GUI version.
 
 
 ------------------------------------------------------------------------
@@ -273,7 +286,11 @@ and avoid ending up with too many messy code versions:
 ------------------------------------------------------------------------
 LOG OF PAST MODIFICATIONS:
 
-- v2: April 20, 2016 (most recent version)
+- v2.2: August 24, 2016 (most recent version)
+
+  - re-introduce topography into the IGI version.
+
+- v2: April 20, 2016
 
   - time-lapse inversion is now operational, and compatible with ACB and
     image guidance.
