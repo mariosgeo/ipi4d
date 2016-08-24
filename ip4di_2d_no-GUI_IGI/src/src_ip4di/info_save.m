@@ -191,7 +191,7 @@ if stf==0 && input.print_intermediate_results==1
          % DC data
 
             % output all intermediate models until current iteration
-            Mts=[mesh.param_x' mesh.param_y' final.res_param1_vs_it];
+            Mts=[mesh.param_x mesh.param_y final.res_param1_vs_it];
             save(input.file_model_inter,'Mts','-ascii');
 
             % output obs vs synthetic data for all iterations
