@@ -136,7 +136,7 @@ if input.first_time_call==1
    end   %end if binary model
 
 
-   % define nb of parameters
+   % re-define nb of parameters
    mesh.num_param=length(mesh.res_param1);
 
    % define background model

@@ -246,6 +246,18 @@ ly. Here are the most important ones:
   version_parameters.m) to avoid loosing results in case of a crash be-
   fore the end of the inversion.
 
+- Topography is accounted for in the modelling only. The inverse problem
+  is still treated in a "flat" model, not corrected for topography. As a
+  consequence, in the presence of topography, spatial derivatives used
+  for Tikhonov regularization are not computed in the x and z-directions
+  anymore, but parallel and perpendicularly to the ground surface, such
+  that the induced smoothing is not strictly isotropic (this is not an
+  issue, it may even makes sense somehow, but be aware of it).
+    When adding image-guided, anisotropic smoothing in the presence of
+  topography, structure tensors must thus be extracted from a "flat"
+  training image, not corrected for topography (which is the case of un-
+  processed seismic or GPR sections).
+
 
 ------------------------------------------------------------------------
 KNOWN BUGS
