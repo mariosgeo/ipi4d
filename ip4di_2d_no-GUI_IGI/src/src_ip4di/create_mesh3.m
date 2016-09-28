@@ -207,12 +207,12 @@ end
 mesh.probe_spacing=min(sur_probe_spacing,bor_probe_spacing);
 
 
-% I must check again so add_x_pooint be excant between bor1 and bor2
+% I must check again so add_x_point be excant between bor1 and bor2
 if surface_flag==0
-    %refine and extend laterally
-    add_x_points=[min(sur_electrodes)-input.x_margin:mesh.probe_spacing/input.ncells_per_elec:max(sur_electrodes)+input.x_margin];
+% in case of surface electrodes, refine and extend laterally
+    add_x_points=[min(sur_electrodes)-input.x_margin : mesh.probe_spacing/input.ncells_per_elec : max(sur_electrodes)+input.x_margin];
     %add_x_points=sur_electrodes';   %FL commented
-else 
+else   % no surface electrode: do not extend laterally, this is done below
     add_x_points=[min(bor_pos):mesh.probe_spacing/input.ncells_per_elec:max(bor_pos)];
 end
 
@@ -223,14 +223,19 @@ add_x_points=[add_x_points bor_pos'];
 % otherwise duplicate points may be considered as different due to rounding errors
 add_x_points=round(add_x_points/input.accuracy_threshold)*input.accuracy_threshold;
 
-%remove duplicate points
+% remove duplicate points
 add_x_points=unique(add_x_points);
 
-% if we have boreholes on edge's add left and right more parameters
 if add_bor_flag==1
-   add_x_points=[min(add_x_points)-2*mesh.probe_spacing min(add_x_points)-mesh.probe_spacing ...
-                 add_x_points ...
-                 max(add_x_points)+mesh.probe_spacing max(add_x_points)+2*mesh.probe_spacing];
+% if we have boreholes on edges, add two parameter cells on left and right
+   add_x_points=[ min(add_x_points)-2*mesh.probe_spacing min(add_x_points)-mesh.probe_spacing ...
+                  add_x_points ...
+                  max(add_x_points)+mesh.probe_spacing max(add_x_points)+2*mesh.probe_spacing ];
+   add_x_points=unique(add_x_points);
+else   % add just one parameter cell on left and right
+   add_x_points=[ min(add_x_points)-mesh.probe_spacing ...
+                  add_x_points ...
+                  max(add_x_points)+mesh.probe_spacing ];
    add_x_points=unique(add_x_points);
 end
 
@@ -493,21 +498,6 @@ for i=1:mesh.max_n-1
 
     for J=L(i)+1:length(mesh.add_x_points)-L(i)-1
 
-        %-- put an extra cell on left margin
-        if J==L(i)+1
-           tmp1=tmp1+1;
-           map=map+1;
-           mesh.map_param(i,map)=tmp1;
-           mesh.tmp_param(tmp1,3)=min(mesh.add_x_points)-mesh.probe_spacing;   %x1
-           mesh.tmp_param(tmp1,4)=mesh.add_x_points(J);  %x2
-           mesh.tmp_param(tmp1,5)=d1;                    %y1
-           mesh.tmp_param(tmp1,6)=d2;                    %y2
-           mesh.tmp_param(tmp1,1)=(mesh.tmp_param(tmp1,3)+mesh.tmp_param(tmp1,4)) /2; % x center
-           mesh.tmp_param(tmp1,2)=(d1+d2)/2;                                          % y center
-           mesh.param_x(tmp1,1)=max(mesh.add_x_points)+mesh.probe_spacing/2;
-           mesh.param_y(tmp1,1)=(d1+d2)/2;
-        end
-
         tmp1=tmp1+1;
 	map=map+1;
 	mesh.map_param(i,map)=tmp1;
@@ -519,8 +509,11 @@ for i=1:mesh.max_n-1
         mesh.tmp_param(tmp1,6)=d2;                      %y2
 
         %-- put a margin of width=probe_spacing to the left and to the right of the model
-        %FL: comment below because it modifies the cell defined above and create a cell that has twice the width of other cells,
-        %    rather create another cell instead (see at beginning and end of the loop).
+        %FL: Commented because it modifies the cell defined above and create a cell that has twice the width of other cells.
+        %    This can cause problems in case of topography: as the mesher will link the vertices of this extra-width cell,
+        %    the 1st and last electrodes located between the vertices may not be on the surface anymore.
+        %    Instead, additional x-coords have been added to mesh.add_x_points in find_probe_spacing,
+        %    and they are treated just like other x-points here, resulting in additional parameter cells on left and right.
         %if(J==L(i)+1); mesh.tmp_param(tmp1,3)=min(mesh.add_x_points)-mesh.probe_spacing; end                           % left
         %if(J==length(mesh.add_x_points)-L(i)-1); mesh.tmp_param(tmp1,4)=max(mesh.add_x_points)+mesh.probe_spacing; end % right 
 
@@ -529,21 +522,6 @@ for i=1:mesh.max_n-1
 
         mesh.param_x(tmp1,1)=(mesh.add_x_points(J)+mesh.add_x_points(J+1)) /2;
         mesh.param_y(tmp1,1)=(d1+d2)/2;
-
-        %-- put an extra cell on right margin
-        if J==length(mesh.add_x_points)-L(i)-1
-           tmp1=tmp1+1;
-           map=map+1;
-           mesh.map_param(i,map)=tmp1;
-           mesh.tmp_param(tmp1,3)=mesh.add_x_points(J+1)  %x1
-           mesh.tmp_param(tmp1,4)=max(mesh.add_x_points)+mesh.probe_spacing;   %x2
-           mesh.tmp_param(tmp1,5)=d1;                    %y1
-           mesh.tmp_param(tmp1,6)=d2;                    %y2
-           mesh.tmp_param(tmp1,1)=(mesh.tmp_param(tmp1,3)+mesh.tmp_param(tmp1,4)) /2; % x center
-           mesh.tmp_param(tmp1,2)=(d1+d2)/2;                                          % y center
-           mesh.param_x(tmp1,1)=max(mesh.add_x_points)+mesh.probe_spacing/2;
-           mesh.param_y(tmp1,1)=(d1+d2)/2;
-        end
 
         %if(dp>depth_n_max) depth_n_max=dp;end
      end   %end     for J=L(i)+1:length(mesh.add_x_points)-L(i)-1
@@ -1173,7 +1151,7 @@ mesh.max_y=max(mesh.param_y-y_tmp);
 %xx=union(mesh.param_x, mesh.param_x); % take the unique x_line
 %yy=union(mesh.param_y-y_tmp, mesh.param_y-y_tmp); %take the unique y_line
 xx=unique(mesh.param_x);       % take the unique x_line
-yy=unique(mesh.param_y-y_tmp); % take the unique y_line
+yy=unique(mesh.param_y-y_tmp); % take the unique y_line and correct for topo
 
 tmp_x=xx(2)-xx(1);   % find the x step
 tmp_y=yy(2)-yy(1);   % find the y_step
@@ -1189,6 +1167,35 @@ ynew=-ynew; %Anapoda giati einai arnitika
 [mesh.xxx,mesh.yyy]=meshgrid(xnew,ynew);
 
 mesh.y_tmp=y_tmp;
+
+
+%-- Define neighbours
+%FL, Sept. 2016: actually not used yet, but potentially useful...
+yy=unique(mesh.param_y); % take the unique y_line (without topographic correction)
+nx=length(xx);
+ny=length(yy);
+% loop over parameter cells
+for i=1:mesh.num_param
+
+  % unique indices of cell
+  ix=find( xx==mesh.param_x(i) );
+  iy=find( yy==mesh.param_y(i) );
+
+  % define ranges of x and y where to search for neighbours
+  % (taking boundaries into account)
+  xmin_search=xx( max(1, ix-1) );
+  xmax_search=xx( min(nx,ix+1) );
+  ymin_search=yy( max(1, iy-1) );
+  ymax_search=yy( min(ny,iy+1) );
+
+  % indices of neighbours
+  i_nbrs=find( mesh.param_x>=xmin_search & mesh.param_x<=xmax_search ...
+             & mesh.param_y>=ymin_search & mesh.param_y<=ymax_search ...
+             & ( mesh.param_x~=xx(ix) | mesh.param_y~=yy(iy) )       );
+             % (do not include cell in the list of neighbours)
+  mesh.nbrs{i}=i_nbrs;
+end
+
 
 % if bgr_res_flag==2
 %     
@@ -1294,6 +1301,12 @@ end   %-- end loop over data points/quadripoles
 %-- compute geometrical factor
 mesh.geofac=1./(VAM-VBM-VAN+VBN);
 clear VAM;clear VBM;clear VAN;clear VBN;clear r1;clear r2;
+
+if input.debug==1
+%- output geometrical factor for check
+   Mts=[[1:length(mesh.geofac)]' mesh.geofac];
+   save('geofac.dat','Mts','-ascii')
+end
 
 
 if input.data_type==2
