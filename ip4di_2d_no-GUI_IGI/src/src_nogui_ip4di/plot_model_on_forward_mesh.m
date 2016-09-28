@@ -47,17 +47,35 @@ for i=1:mesh.num_param
     p4=find(tmp4(:,1)==x1 & tmp4(:,2)==y1min);   % bottom left
 
     faces=[p1;p2;p3;p4];
-
     icol=1+mod(i,3);
-    if input.plot_options.cmplx_flag==1
-       patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',real(model(i))','edgecolor','k');
-    elseif input.plot_options.cmplx_flag==2
-       patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',imag(model(i))','edgecolor','k');
-    elseif input.plot_options.cmplx_flag==3
-       patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(model(i))','edgecolor','k');
-       %patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(model(i))','edgecolor',col(icol,:));
-    elseif input.plot_options.cmplx_flag==4
-       patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',atan(imag(model(i))/real(model(i)))*1000','edgecolor','k');
+
+    if input.plot_options.plot_log==0
+    %- plot resistivity
+
+       if input.plot_options.cmplx_flag==0 || input.plot_options.cmplx_flag==1
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',real(model(i))','edgecolor','k');
+       elseif input.plot_options.cmplx_flag==2
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',imag(model(i))','edgecolor','k');
+       elseif input.plot_options.cmplx_flag==3
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(model(i))','edgecolor','k');
+          %patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(model(i))','edgecolor',col(icol,:));
+       elseif input.plot_options.cmplx_flag==4
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',atan(imag(model(i))/real(model(i)))*1000','edgecolor','k');
+       end
+
+    elseif input.plot_options.plot_log==1
+    %- plot log(resistivity)
+
+       if input.plot_options.cmplx_flag==0 || input.plot_options.cmplx_flag==1
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',real(log10(model(i)))','edgecolor','k');
+       elseif input.plot_options.cmplx_flag==2
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',imag(log10(model(i)))','edgecolor','k');
+       elseif input.plot_options.cmplx_flag==3
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(log10(model(i)))','edgecolor','k');
+          %patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',abs(model(i))','edgecolor',col(icol,:));
+       elseif input.plot_options.cmplx_flag==4
+          patch('faces',faces','vertices',tmp4,'facecolor','flat','FaceVertexCData',atan(imag(model(i))/real(model(i)))*1000','edgecolor','k');
+       end
     end
 
 end   %end for i=1:mesh.num_param
@@ -74,8 +92,16 @@ end
 axis equal;
 hleg=colorbar;
 
-%- tune figure according to plotted component
-if input.plot_options.cmplx_flag==1
+%-- tune figure according to plotted component
+% default is amplitude
+input.plot_options.caxis=input.plot_options.caxis_amp;
+input.plot_options.axis_tics=input.plot_options.axis_tics_amp;
+
+if input.plot_options.cmplx_flag==0
+%- DC case: just resistivity
+   ylabel(hleg,'Resistivity (\Omega.m)')
+
+elseif input.plot_options.cmplx_flag==1
    ylabel(hleg,'Resistivity, real part (\Omega.m)')
 
 elseif input.plot_options.cmplx_flag==2 && input.sip_flag==1
@@ -83,8 +109,6 @@ elseif input.plot_options.cmplx_flag==2 && input.sip_flag==1
 
 elseif input.plot_options.cmplx_flag==3
    ylabel(hleg,'Resistivity, amplitude (\Omega.m)')
-   input.plot_options.caxis=input.plot_options.caxis_amp;
-   input.plot_options.axis_tics=input.plot_options.axis_tics_amp;
 
 elseif input.plot_options.cmplx_flag==4 && input.sip_flag==1
    ylabel(hleg,'Resistivity, phase (mrad)')
@@ -102,11 +126,31 @@ ylabel('z (m)')
 
 set(gca,'YDir','reverse');
 
+%
 xlim([min(mesh.tmp_param(:,3)) max(mesh.tmp_param(:,4))]);
-%ylim([min(mesh.tmp_param(:,5)) max(mesh.tmp_param(:,6))]);
+if numel(input.plot_options.ymin)>0 && numel(input.plot_options.ymax)>0
+   ylim([input.plot_options.ymin input.plot_options.ymax]);
+elseif input.topo_flag==0
+   ylim([min(mesh.tmp_param(:,5)) max(mesh.tmp_param(:,6))]);
+end
+
 %ylim([min(mesh.tmp_param(:,5))-min(mesh.anaglyfo_data(:,2)) max(mesh.tmp_param(:,6))-max(mesh.anaglyfo_data(:,2))]);
 %ylim([-max(mesh.tmp_param(:,6)) -min(mesh.tmp_param(:,5))]);
 
 %set(gca,'XTick',[min(mesh.tmp_param(:,3)):0.1:max(mesh.tmp_param(:,4))]);
 %set(gca,'YTick',[min(mesh.tmp_param(:,5)):0.1:max(mesh.tmp_param(:,6))]);
 
+%-- log scale
+if input.plot_options.plot_log==1
+   caxis(log10(input.plot_options.caxis))
+   set(hleg,'YTick',log10(input.plot_options.axis_tics));
+   set(hleg,'YTickLabel',input.plot_options.axis_tics);
+end
+
+%FL DEBUG
+if input.debug>0
+   disp_axis_tics=input.plot_options.axis_tics
+   disp_caxis=input.plot_options.caxis
+   min_rho=min(model)
+   max_rho=max(model)
+end

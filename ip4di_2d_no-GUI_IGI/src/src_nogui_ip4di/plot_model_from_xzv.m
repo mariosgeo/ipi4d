@@ -31,7 +31,7 @@ model=[model(:,1) model model(:,nx)];
 [MX,MZ]=meshgrid(vx,vz);
 
 
-if input.plot_options.cmplx_flag==1
+if input.plot_options.cmplx_flag==0 || input.plot_options.cmplx_flag==1
 % plot real part
    model=real(model);
 
@@ -79,7 +79,10 @@ xlim([input.plot_options.x_min input.plot_options.x_max]);
 ylim([input.plot_options.z_min input.plot_options.z_max]);
 
 % tune figure according to plotted component
-if input.plot_options.cmplx_flag==1
+if input.plot_options.cmplx_flag==0
+   ylabel(hleg,'Resistivity (\Omega.m)')
+
+elseif input.plot_options.cmplx_flag==1
    ylabel(hleg,'Resistivity, real part (\Omega.m)')
 
 elseif input.plot_options.cmplx_flag==2

@@ -24,5 +24,10 @@ function [abort_flag]=check_inputs(input)
     abort_flag=1;   %terminate program
  end
 
+ if input.dc_flag==1
+ %- in the DC case, just plot resistivity
+    input.plot_options.cmplx_flag=0;
+ end
+
 end   %end function check_inputs
 
