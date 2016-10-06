@@ -49,11 +49,12 @@ vx=model_vs_it(:,1);
 vz=model_vs_it(:,2);
 
 if input.dc_flag==1
-   model=model_vs_it(:,itr+2);   % +2 because of x,z-col. before
+   iitr=itr+2+1;   % convert itr to index nb (+2 because of x,z-col. before, +1 to skip it0)
+   model=model_vs_it(:,iitr);
 
 elseif input.sip_flag==1
-   model_r=model_vs_it(:,2*itr+1);   % real part of model at it.
-   model_i=model_vs_it(:,2*itr+2);   % imag part of model at it.
+   model_r=model_vs_it(:,2*itr+1+1);   % real part of model at it. (+1 to skip it0)
+   model_i=model_vs_it(:,2*itr+1+2);   % imag part of model at it.
    model=model_r+1i*model_i;         % cmplx model
 end
 

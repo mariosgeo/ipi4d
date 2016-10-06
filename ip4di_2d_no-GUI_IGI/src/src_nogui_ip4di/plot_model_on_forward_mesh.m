@@ -128,8 +128,8 @@ set(gca,'YDir','reverse');
 
 %
 xlim([min(mesh.tmp_param(:,3)) max(mesh.tmp_param(:,4))]);
-if numel(input.plot_options.ymin)>0 && numel(input.plot_options.ymax)>0
-   ylim([input.plot_options.ymin input.plot_options.ymax]);
+if numel(input.plot_options.z_min)>0 && numel(input.plot_options.z_max)>0
+   ylim([input.plot_options.z_min input.plot_options.z_max]);
 elseif input.topo_flag==0
    ylim([min(mesh.tmp_param(:,5)) max(mesh.tmp_param(:,6))]);
 end
