@@ -50,10 +50,10 @@ if input.plot_options.interp==0
    imagesc(vx,vz,model);
 
 elseif input.plot_options.interp==1
-% plot inteprolated model
+% plot interpolated model
 
    %ZI=griddata(param_x-neg_x,-param_y,amp,XI,YI,'nearest');
-   ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y-mesh.y_tmp,amp);
+   ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y-mesh.param_ytopo,amp);
    ZII = ZI(mesh.xxx,mesh.yyy);
    contourf(big_part,mesh.xxx,mesh.yyy,ZII,17,'EdgeColor','none');
 end
@@ -83,10 +83,10 @@ if input.sip_flag==1 || input.ip_flag==1 && ip_cnt==2
        imagesc(vx,vz,model);
 
     elseif input.plot_options.interp==1
-    % plot inteprolated model
+    % plot interpolated model
 
        %ZI=griddata(param_x-neg_x,-param_y,phi,XI,YI,'nearest');
-       ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y-mesh.y_tmp,phi);
+       ZI=TriScatteredInterp(mesh.param_x,-mesh.param_y-mesh.param_ytopo,phi);
        ZII = ZI(mesh.xxx,mesh.yyy);
        contourf(ip_part,mesh.xxx,mesh.yyy,ZII,17,'EdgeColor','none');
     end

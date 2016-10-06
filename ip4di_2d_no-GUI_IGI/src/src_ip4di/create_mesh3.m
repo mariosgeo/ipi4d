@@ -19,10 +19,14 @@
 %   7) avoid the call to the anaglyfo function, to suppress the need for user's manual intervention.
 
 % Modified by Francois Lavoue, August 2016.
-%   -> re-introduce topography, following the original approach of anaglyfo,
+%   -> re-introduce topography, following the original approach of anaglyfo function,
 %      ie 1- electrode coordinates given in input data file must NOT contain topography,
 %            such that surface and borehole electrodes can be determined.
-%         2- then topography is read from file and used to correct electrode and node z-coordinates.
+%         2- then topography is read from file, interpolated at electrode and node locations,
+%            and used to correct electrode and node z-coordinates.
+%   -> change variable name 'mesh.anaglyfo_data' into 'mesh.topo_nodes'.
+%   -> introduce new vector mesh.topo_param to store interpolated topographic correction
+%      (useful for further plots).
 
 function [mesh]=create_mesh3(input,mesh)
 
@@ -841,37 +845,10 @@ faces{i+1}=[faces{i+1} tmp2];
 tmp2=tmp2+1;
 
 
-%%%FL, Sept. 2015: BELOW IS OBSOLETE %%%
-%%FL WARNING /!\ here, orig_probe_x =/= mesh.orig_probe_x
-%%extreme and intermediate values were added
-%orig_probe_x=unique(node(:,1));
-%save('orig_probe_x.mat','orig_probe_x');
-%
-%% call anaglyfo function
-%anaglyfo;
-%
-%h=gcf;
-%uiwait(h);
-%%close(h);
-%load('anaglyfo_data.mat');
-%% % % % topography here
-%%%FL, Sept. 2015: ABOVE IS OBSOLETE %%%
-
-%%%FL: BELOW IS OBSOLETE (Aug. 2016) %%%
-%%FL, Sept. 2015: replace call to anaglyfo
-%%orig_probe_x=unique(node(:,1));
-%%data(:,1)=orig_probe_x;
-%%data(:,2)=0;
-%anaglyfo_data(:,1)=unique(node(:,1));
-%anaglyfo_data(:,2)=0;
-%mesh.anaglyfo_data=anaglyfo_data;
-%%%FL: ABOVE IS OBSOLETE (Aug. 2016) %%%
-
-
 %-- Topography
 % init: no topo
-anaglyfo_data(:,1)=unique(node(:,1));
-anaglyfo_data(:,2)=0;
+topo_nodes(:,1)=unique(node(:,1));
+topo_nodes(:,2)=0;
 
 %-- add topo
 if input.topo_flag==1
@@ -879,28 +856,28 @@ if input.topo_flag==1
    topo=load(input.file_topo_in);
 
    %- add topo values if missing at model ends
-   if anaglyfo_data(1,1) < topo(1,1)
-      topo=[ [anaglyfo_data(1,1);topo(:,1)] [topo(1,2);topo(:,2)] ];
+   if topo_nodes(1,1) < topo(1,1)
+      topo=[ [topo_nodes(1,1);topo(:,1)] [topo(1,2);topo(:,2)] ];
    end
-   if anaglyfo_data(end,1) > topo(end,1)
-      topo=[ [topo(:,1);anaglyfo_data(end,1)] [topo(:,2);topo(end,2)] ];
+   if topo_nodes(end,1) > topo(end,1)
+      topo=[ [topo(:,1);topo_nodes(end,1)] [topo(:,2);topo(end,2)] ];
    end
 
    %- interpolate topo at node locations
-   anaglyfo_data(:,2)=interp1(topo(:,1),topo(:,2),anaglyfo_data(:,1),'linear');
+   topo_nodes(:,2)=interp1(topo(:,1),topo(:,2),topo_nodes(:,1),'linear');
 end
 
 % store in mesh structure
-mesh.anaglyfo_data=anaglyfo_data;
+mesh.topo_nodes=topo_nodes;
 
-if(input.debug==1) save('anaglyfo_data.mat','anaglyfo_data');end
+if(input.debug==1) save('topo_nodes.mat','topo_nodes');end
 
 
 %-- correct z-coordinates of electrodes for topography
-for i=1:length(anaglyfo_data(:,1))
+for i=1:length(topo_nodes(:,1))
     for j=1:length(mesh.orig_probe_x)
-        if abs(mesh.orig_probe_x(j)-anaglyfo_data(i,1)) < input.accuracy_threshold
-           mesh.orig_probe_z(j)=mesh.orig_probe_z(j)-anaglyfo_data(i,2);
+        if abs(mesh.orig_probe_x(j)-topo_nodes(i,1)) < input.accuracy_threshold
+           mesh.orig_probe_z(j)=mesh.orig_probe_z(j)-topo_nodes(i,2);
         end
     end
 end
@@ -912,18 +889,18 @@ z_except1=tmp(end-1);   % bottom of physical model
 z_except2=bottom;       % bottom of total model, including boundary conditions
 for i=1:length(node(:,1))
     flag_translated=0;
-    for j=1:length(anaglyfo_data)
-        if node(i,1)==anaglyfo_data(j,1) && node(i,2)==z_except1
+    for j=1:length(topo_nodes)
+        if node(i,1)==topo_nodes(j,1) && node(i,2)==z_except1
         %- translate bottom of physical model by constant shift (min. topo)
-           node(i,2)=node(i,2)-min(anaglyfo_data(:,2));
+           node(i,2)=node(i,2)-min(topo_nodes(:,2));
            flag_translated=1;
-        elseif node(i,1)==anaglyfo_data(j,1) && node(i,2)==z_except2
+        elseif node(i,1)==topo_nodes(j,1) && node(i,2)==z_except2
         %- translate bottom of total model by constant shift (mean topo)
-           node(i,2)=node(i,2)-mean(anaglyfo_data(:,2));
+           node(i,2)=node(i,2)-mean(topo_nodes(:,2));
            flag_translated=1;
-        elseif node(i,1)==anaglyfo_data(j,1)
+        elseif node(i,1)==topo_nodes(j,1)
         %- translate other nodes by topo shift
-           node(i,2)=node(i,2)-anaglyfo_data(j,2);
+           node(i,2)=node(i,2)-topo_nodes(j,2);
            flag_translated=1;
         end
     end
@@ -1118,55 +1095,48 @@ function mesh=create_mesh_grid(input,mesh)
 
 %-- Add topography
 %load('anaglyfo_data.mat');
-anaglyfo_data=mesh.anaglyfo_data;
-y_tmp=zeros(mesh.num_param,1);
+topo_nodes=mesh.topo_nodes;
+ytopo_param=zeros(mesh.num_param,1);
 
+%-- Define topographic correction for each parameter cell
 for i=1:mesh.num_param
-    %check for 1st parameter
-    if mesh.param_x(i)==min(mesh.param_x)
-    % 1st parameter column
-        y_tmp(i)=anaglyfo_data(1,2);
-        %x_tmp=anaglyfo_data(3,1);
-        %y_tmp(i)=anaglyfo_data(3,2);
-    elseif mesh.param_x(i)==max(mesh.param_x)
-    % last parameter column
-        y_tmp(i)=anaglyfo_data(end,2);
-        %x_tmp=anaglyfo_data(end-2,1);
-        %y_tmp(i)=anaglyfo_data(3,2);
+    x_tmp=mesh.param_x(i);
+    ind=find(topo_nodes(:,1)==x_tmp);
+    if length(ind)>0
+       ytopo_param(i)=topo_nodes(ind,2);
     else
-    % other parameter columns
-        x_tmp=mesh.param_x(i);
-        ind=find(anaglyfo_data(:,1)==x_tmp);
-        y_tmp(i)=anaglyfo_data(ind,2);
+       error(sprintf('Did not find ytopo for param. i, param_x(i) = %i, %f',i,mesh.param_x(i)));
     end
 end
 
 
+% model limits
 mesh.min_x=min(mesh.param_x);
 mesh.max_x=max(mesh.param_x);
 
-mesh.min_y=min(mesh.param_y-y_tmp);
-mesh.max_y=max(mesh.param_y-y_tmp);
+mesh.min_y=min(mesh.param_y-ytopo_param);
+mesh.max_y=max(mesh.param_y-ytopo_param);
 
 %xx=union(mesh.param_x, mesh.param_x); % take the unique x_line
-%yy=union(mesh.param_y-y_tmp, mesh.param_y-y_tmp); %take the unique y_line
+%yy=union(mesh.param_y-ytopo_param, mesh.param_y-ytopo_param); %take the unique y_line
 xx=unique(mesh.param_x);       % take the unique x_line
-yy=unique(mesh.param_y-y_tmp); % take the unique y_line and correct for topo
+yy=unique(mesh.param_y-ytopo_param); % take the unique y_line and correct for topo
 
-tmp_x=xx(2)-xx(1);   % find the x step
-tmp_y=yy(2)-yy(1);   % find the y_step
-yy=-yy;              % create y as negative
+dx=xx(2)-xx(1);   % find the x step
+dy=yy(2)-yy(1);   % find the (min.) y_step
+yy=-yy;           % create y as negative
 
 % create grid data
 [mesh.XI mesh.YI]=meshgrid(xx,yy);
 
-xnew=[mesh.min_x:tmp_x/2:mesh.max_x];
-ynew=[mesh.min_y:tmp_y/2:mesh.max_y];
+xnew=[mesh.min_x:dx/2:mesh.max_x];
+ynew=[mesh.min_y:dy/2:mesh.max_y];
 
 ynew=-ynew; %Anapoda giati einai arnitika
 [mesh.xxx,mesh.yyy]=meshgrid(xnew,ynew);
 
-mesh.y_tmp=y_tmp;
+% store topographic correction for each parameter (useful for later plots)
+mesh.param_ytopo=ytopo_param;
 
 
 %-- Define neighbours
@@ -1232,18 +1202,18 @@ function mesh=geometrical_factor(input,mesh)
 
 % include first topography in ax and az coordinates
 % for i=1:input.num_mes
-%     for j=1:length(mesh.anaglyfo_data(:,1))
-%         if input.ax(i)==mesh.anaglyfo_data(j,1)
-%             input.az(i)=input.az(i)-anaglyfo_data(j,2);
+%     for j=1:length(mesh.topo_nodes(:,1))
+%         if input.ax(i)==mesh.topo_nodes(j,1)
+%             input.az(i)=input.az(i)-topo_nodes(j,2);
 %         end
-%         if input.bx(i)==mesh.anaglyfo_data(j,1)
-%             input.bz(i)=input.bz(i)-anaglyfo_data(j,2);
+%         if input.bx(i)==mesh.topo_nodes(j,1)
+%             input.bz(i)=input.bz(i)-topo_nodes(j,2);
 %         end
-%         if input.mx(i)==mesh.anaglyfo_data(j,1)
-%             input.mz(i)=input.mz(i)-anaglyfo_data(j,2);
+%         if input.mx(i)==mesh.topo_nodes(j,1)
+%             input.mz(i)=input.mz(i)-topo_nodes(j,2);
 %         end
-%         if input.nx(i)==mesh.anaglyfo_data(j,1)
-%             input.nz(i)=input.nz(i)-anaglyfo_data(j,2);
+%         if input.nx(i)==mesh.topo_nodes(j,1)
+%             input.nz(i)=input.nz(i)-topo_nodes(j,2);
 %         end
 %     end
 % end
