@@ -10,18 +10,26 @@ function mesh=define_mean_res(input,mesh)
  % read model from input file
  model=load(input.file_model_in);
 
- if input.cmplx_format==1
- %  input file contains real and imaginary part of resistivity
-    rho_r=model(:,3);
-    rho_i=model(:,4);
-    mesh.model_in = complex (rho_r , rho_i);
+ if input.dc_flag==1
 
- elseif input.cmplx_format==2
- % else, input file contains amplitude and phase of resistivity (in mrad)
-    mag=model(:,3);
-    phi=model(:,4);
-    mesh.model_in = mag.*complex( cos(phi/1000) , sin(phi/1000) );
+    mesh.model_in=model(:,3);
+
+ elseif input.sip_flag==1
+
+   if input.cmplx_format==1
+   %  input file contains real and imaginary part of resistivity
+      rho_r=model(:,3);
+      rho_i=model(:,4);
+      mesh.model_in = complex (rho_r , rho_i);
+
+   elseif input.cmplx_format==2
+   % else, input file contains amplitude and phase of resistivity (in mrad)
+      mag=model(:,3);
+      phi=model(:,4);
+      mesh.model_in = mag.*complex( cos(phi/1000) , sin(phi/1000) );
+   end
  end
+
 
  %define mean value
  if input.mean_res_flag==1

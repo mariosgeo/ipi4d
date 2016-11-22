@@ -25,8 +25,12 @@ if input.first_time_call==1
    % plot initial model (default values)
    if input.plot_model==1
       input.plot_options.label_title='DEFAULT MODEL';
-      input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
-      input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+      if input.dc_flag==1
+         input.plot_options.cmplx_flag=0; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)
+      elseif input.sip_flag==1
+         input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
+         input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+      end
    end
 
    if input.interp_model_flag==1
@@ -86,8 +90,12 @@ if input.first_time_call==1
       % plot
       if input.plot_model==1
          input.plot_options.label_title='INTERPOLATED MODEL';
-         input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
-         input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+         if input.dc_flag==1
+            input.plot_options.cmplx_flag=0; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)
+         elseif input.sip_flag==1
+            input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
+            input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+         end
       end
 
    end   %end interpolate model on irregular grid
@@ -136,7 +144,7 @@ if input.first_time_call==1
    end   %end if binary model
 
 
-   % define nb of parameters
+   % re-define nb of parameters
    mesh.num_param=length(mesh.res_param1);
 
    % define background model
@@ -145,8 +153,12 @@ if input.first_time_call==1
    % plot
    if input.plot_model==1
       input.plot_options.label_title='FORWARD MODEL';
-      input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
-      input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+      if input.dc_flag==1
+         input.plot_options.cmplx_flag=0; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)
+      elseif input.sip_flag==1
+         input.plot_options.cmplx_flag=3; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot amplitude
+         input.plot_options.cmplx_flag=4; plot_model_on_forward_mesh(input,mesh,mesh.res_param1)   %plot phase
+      end
    end
 
    input.first_time_call=0;

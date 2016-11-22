@@ -45,7 +45,11 @@ input.plot_covariance_matrices=0;
 % OPTIONS COMMON TO FWD AND INV %
 %-------------------------------%
 
-input.plot_options.interp=0;   % 0->plot discretized model, 1->plot model after Matlab interpolation, 2->plot model after image-guided interpolation
+input.plot_options.plot_log=1; % plot log? (0->no, 1->yes)
+
+input.plot_options.interp=0;   % 0->plot discretized model,
+                               % 1->plot model after Matlab interpolation,
+                               % 2->plot model after image-guided interpolation
 
 input.plot_options.x_min=-0.025;
 input.plot_options.x_max=1.225;

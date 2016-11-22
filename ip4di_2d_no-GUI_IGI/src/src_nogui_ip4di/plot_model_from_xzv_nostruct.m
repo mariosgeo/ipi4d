@@ -1,12 +1,13 @@
 %
-% Function PLOT_MODEL: simply plot model when mesh is not known
+% Function PLOT_MODEL_FROM_XZV_NOSTRUCT: plot model when the 'mesh'
+%                                        structure is not known.
 %
 % Derived from function auto_contour.m by M. Karaoulis.
 %
 % Author: Francois Lavoue', Colorado School of Mines
 % Version: October 15, 2015.
 
-function plot_model_from_xzv(input,vMX,vMZ,model)
+function plot_model_from_xzv_nostruct(input,vMX,vMZ,model)
 
 figure;
 
@@ -31,17 +32,29 @@ model=[model(:,1) model model(:,nx)];
 [MX,MZ]=meshgrid(vx,vz);
 
 
-if input.plot_options.cmplx_flag==1
+if input.plot_options.cmplx_flag==0 || input.plot_options.cmplx_flag==1
 % plot real part
-   model=real(model);
+   if input.plot_options.plot_log==0
+      model=real(model);
+   else
+      model=real(log10(model));
+   end
 
 elseif input.plot_options.cmplx_flag==2
 % plot imag. part
-   model=imag(model);
+   if input.plot_options.plot_log==0
+      model=imag(model);
+   else
+      model=imag(log10(model));
+   end
 
 elseif input.plot_options.cmplx_flag==3
 % plot amplitude
-   model=abs(model);
+   if input.plot_options.plot_log==0
+      model=abs(model);
+   else
+      model=abs(log10(model));
+   end
 
 elseif input.plot_options.cmplx_flag==4
 % plot phase
@@ -63,41 +76,15 @@ elseif input.plot_options.interp==1
 
 elseif input.plot_options.interp==2
 % plot model after image-guided inerpolation
-   disp('POST-INVERSION IMAGE-GUIDED INTERPOLATION NOT IMPLEMENTED YET');
+   disp('POST-INVERSION IMAGE-GUIDED INTERPOLATION NEEDS THE MESH STRUCTURE');
+   disp('USE FUNCTION plot_model_from_xzv_struct(input,mesh,vx,vz,model)');
    return;
 end
 
 
 % tune figure
-colormap(input.plot_options.cmap);
-hleg=colorbar();
-title(input.plot_options.label_title);
-axis ('equal');
-xlabel('x (m)');
-ylabel('z (m)');
-xlim([input.plot_options.x_min input.plot_options.x_max]);
-ylim([input.plot_options.z_min input.plot_options.z_max]);
+tune_figure;
 
-% tune figure according to plotted component
-if input.plot_options.cmplx_flag==1
-   ylabel(hleg,'Resistivity, real part (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==2
-   ylabel(hleg,'Resistivity, imag. part (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==3
-   ylabel(hleg,'Resistivity, amplitude (\Omega.m)')
-   input.plot_options.caxis=input.plot_options.caxis_amp;
-   input.plot_options.axis_tics=input.plot_options.axis_tics_amp;
-
-elseif input.plot_options.cmplx_flag==4
-   ylabel(hleg,'Resistivity, phase (mrad)')
-   input.plot_options.caxis=input.plot_options.caxis_phi;
-   input.plot_options.axis_tics=input.plot_options.axis_tics_phi;
-end
-
-if(numel(input.plot_options.caxis)>0); caxis(input.plot_options.caxis); end
-if(numel(input.plot_options.axis_tics)>0); set(hleg,'YTick',input.plot_options.axis_tics); end
 
 end   %end function
 

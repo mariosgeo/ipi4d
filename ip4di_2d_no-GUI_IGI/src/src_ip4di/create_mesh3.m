@@ -1,9 +1,12 @@
+%----------------------------------------------------------------------%
 %
 % Function CREATE_MESH3: creates the finite-element mesh.
 %
 % Author: Marios Karaoulis, Colorado School of Mines
+%
+%----------------------------------------------------------------------%
 
-% Modified by Francois Lavoue', Colorado School of Mines, September 2015.
+% Modified by Francois Lavoue, Colorado School of Mines, September 2015.
 %   Modifications include
 %   1) some comments for more readability.
 %   2) the possibility to load a pre-existing mesh.
@@ -14,6 +17,16 @@
 %   6) deal with some numerical issues in the removal of duplicate points
 %      (use the manual criterion input.accuracy_threshold instead of == boolean).
 %   7) avoid the call to the anaglyfo function, to suppress the need for user's manual intervention.
+
+% Modified by Francois Lavoue, August 2016.
+%   -> re-introduce topography, following the original approach of anaglyfo function,
+%      ie 1- electrode coordinates given in input data file must NOT contain topography,
+%            such that surface and borehole electrodes can be determined.
+%         2- then topography is read from file, interpolated at electrode and node locations,
+%            and used to correct electrode and node z-coordinates.
+%   -> change variable name 'mesh.anaglyfo_data' into 'mesh.topo_nodes'.
+%   -> introduce new vector mesh.topo_param to store interpolated topographic correction
+%      (useful for further plots).
 
 function [mesh]=create_mesh3(input,mesh)
 
@@ -82,130 +95,27 @@ end
 %    mesh.d4_res_param2=mesh.mean_res*ones(mesh.num_param,input.num_files);   
 %end
 
-end   %end function create_mesh
+end   %-- end function create_mesh
+%----------------------------------------------------------------------%
 
 
 
-function mesh=geometrical_factor(input,mesh)
-
-% include first topography in ax and az coordinates
-% for i=1:input.num_mes
-%     for j=1:length(mesh.anaglyfo_data(:,1))
-%         if input.ax(i)==mesh.anaglyfo_data(j,1)
-%             input.az(i)=input.az(i)-anaglyfo_data(j,2);
-%         end
-%         if input.bx(i)==mesh.anaglyfo_data(j,1)
-%             input.bz(i)=input.bz(i)-anaglyfo_data(j,2);
-%         end
-%         if input.mx(i)==mesh.anaglyfo_data(j,1)
-%             input.mz(i)=input.mz(i)-anaglyfo_data(j,2);
-%         end
-%         if input.nx(i)==mesh.anaglyfo_data(j,1)
-%             input.nz(i)=input.nz(i)-anaglyfo_data(j,2);
-%         end
-%     end
-% end
-
-%Find the geometrical factor
-VAM=zeros(input.num_mes,1);
-VAN=zeros(input.num_mes,1);
-VBM=zeros(input.num_mes,1);
-VBN=zeros(input.num_mes,1);
-
-
-for i=1:input.num_mes
-    if(input.m_array_type(i)==1 || input.m_array_type(i)==2)
-         aflag=1; bflag=1; mflag=1; nflag=1;
-    end
-
-    %/* flag for Pole-dipole array */
-    if(input.m_array_type(i)==2)
-        aflag=1; bflag=0; mflag=1; nflag=1;
-    end
-
-    %/* flag for Pole-pole */
-    if(input.m_array_type(i)==3)
-          aflag=1; mflag=1; bflag=0; nflag=0;
-    end
-    
-    
-    if(aflag*mflag~=0)
-      r1=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (input.az(i)-input.mz(i))*(input.az(i)-input.mz(i)) );
-      r2=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (-input.az(i)-input.mz(i))*(-input.az(i)-input.mz(i)) );
-      VAM(i)=(r1+r2)./(r1.*r2.*4*pi);
-    end
-
-    if(aflag*nflag~=0)
-      r1=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (input.az(i)-input.nz(i))*(input.az(i)-input.nz(i)) );
-      r2=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (-input.az(i)-input.nz(i))*(-input.az(i)-input.nz(i)) );
-      VAN(i)=(r1+r2)./(r1.*r2.*4*pi); 
-    end
-
-    if(bflag*mflag~=0)
-      r1=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (input.bz(i)-input.mz(i))*(input.bz(i)-input.mz(i)) );
-      r2=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (-input.bz(i)-input.mz(i))*(-input.bz(i)-input.mz(i)) );
-      VBM(i)= (r1+r2)./(r1.*r2.*4*pi); 
-    end
-
-    if(bflag*nflag~=0)
-      r1=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (input.bz(i)-input.nz(i))*(input.bz(i)-input.nz(i)) );
-      r2=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (-input.bz(i)-input.nz(i))*(-input.bz(i)-input.nz(i)) );
-      VBN(i)= (r1+r2)./(r1.*r2.*4*pi); 
-    end
-end   %end for
-
-mesh.geofac=1./(VAM-VBM-VAN+VBN);
-clear VAM;clear VBM;clear VAN;clear VBN;clear r1;clear r2;
-
-
-if input.data_type==2 
-%if input data are resistances, convert them to resistivities
-   input.real_data=input.real_data.*mesh.geofac;
-   %pause
-end
-
-
-if input.time_lapse_flag==1
-    ind=find (input.d4_real_data<0);
-    if size(ind,1)~=0 && size(ind,2)~=-0
-        display('Negative resistivities in measurements');
-        ind
-        pause
-    end   
-
-%FL /!\ Default values must match homogeneous background,
-%       otherwise solution is wrong
-% (now defined in separate routine define_mean_res.m)
-%%    mesh.mean_res=mean(mean(10.^(log10(input.d4_real_data))));  
-    
-elseif input.time_lapse_flag==0
-    ind=find (input.real_data<0);
-    if size(ind,1)~=0 && size(ind,2)~=-0
-        display('Negative resistivities in measurements');
-        ind
-        pause
-    end    
-
-%FL /!\ Default values must match homogeneous background,
-%       otherwise solution is wrong
-% (now defined in separate routine define_mean_res.m)
-%%    mesh.mean_res=(mean(10.^(log10(input.real_data))));
-
-end   %end if time_lapse_flag
-
-end   %end function mesh=geometrical_factor(input,mesh)
-
-
-
-% The main idea for this function is to calculate the basic dimensions of
-% the mesh. I need to find the surface electrodes, the borehole electrodes,
-% the positions of the electrodes etc. If for some reason a borehole is on
-% edge or if there are no surface electrodes I must ensure to add the neccessary
-% points.
+%----------------------------------------------------------------------%
+%
+%   Function FIND_PROBE_SPACING: find electrode locations and define
+%                                mesh nodes accordingly.
+%
+% The main idea for this function is to calculate the basic dimensions
+% of the mesh. I need to find the surface electrodes, the borehole elec-
+% trodes, the positions of the electrodes etc. If for some reason a bo-
+% rehole is on edge or if there are no surface electrodes I must ensure
+% to add the neccessary points.
+%
+%----------------------------------------------------------------------%
 
 function mesh=find_probe_spacing(input)
 
-%%%%%%%%%%%%%%%%%%%%%%PRE-ALLOCATION%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%-- pre-allocation
 tmp_all=zeros(1,input.num_mes);
 add_x_points=[];
 bor_probe_spacing=1e9;
@@ -220,8 +130,7 @@ pa=zeros(1,input.num_mes);
 pb=zeros(1,input.num_mes);
 pm=zeros(1,input.num_mes);
 pn=zeros(1,input.num_mes);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%--
 
 tmp_A(:,1)=input.ax;
 tmp_A(:,2)=input.az;
@@ -235,8 +144,7 @@ tmp_M(:,2)=input.mz;
 tmp_N(:,1)=input.nx;
 tmp_N(:,2)=input.nz;
 
-% tmp_ALL matrix contains the UNIQUE x and y coordinates of all electrodes
-% found
+% tmp_ALL matrix contains the UNIQUE x and y coordinates of all electrodes found
 tmp_ALL=union(tmp_A,tmp_B,'rows');
 tmp_ALL=union(tmp_ALL,tmp_M,'rows');
 tmp_ALL=union(tmp_ALL,tmp_N,'rows');
@@ -256,8 +164,8 @@ sur_electrodes=unique(tmp_ALL(:,1)); % Keep all x-coordinates
 bor_electrodes=unique(tmp_ALL(:,2)); % keep all y-coordinates
 
 
-% Search if there are NO surface electrodes (compeare all x-coordiantes
-% with number of boreholes
+% Search if there are NO surface electrodes
+% (compare all x-coordinates with number of boreholes)
 if length(sur_electrodes)==mesh.num_of_bor
     disp('No surface electrodes are found');
     surface_flag=1;
@@ -287,46 +195,51 @@ else
 end
 
 
-% find if borehoe on edge
+% Find if borehole must be added on edges
 if min(bor_pos) <= min(sur_electrodes)
-    %flag to add some nodes on the edges
-    add_bor_flag=1;
+   % flag to add some nodes on the edges
+   add_bor_flag=1;
 elseif max(bor_pos) >= max(sur_electrodes)
-    %flag to add some nodes on the edges
-    add_bor_flag=1;
+   %flag to add some nodes on the edges
+   add_bor_flag=1;
 else
-    add_bor_flag=0;
+   add_bor_flag=0;
 end
 
 
-% Now we may have br_min_probe_spacing and sr_probe_spacing. I only need one
+% Now we may have bor_probe_spacing and sur_probe_spacing. I only need one
 mesh.probe_spacing=min(sur_probe_spacing,bor_probe_spacing);
 
 
-% I must check again so add_x_pooint be excant between bor1 and bor2
+% I must check again so add_x_point be excant between bor1 and bor2
 if surface_flag==0
-    %refine and extend laterally
-    add_x_points=[min(sur_electrodes)-input.x_margin:mesh.probe_spacing/input.ncells_per_elec:max(sur_electrodes)+input.x_margin];
+% in case of surface electrodes, refine and extend laterally
+    add_x_points=[min(sur_electrodes)-input.x_margin : mesh.probe_spacing/input.ncells_per_elec : max(sur_electrodes)+input.x_margin];
     %add_x_points=sur_electrodes';   %FL commented
-else 
+else   % no surface electrode: do not extend laterally, this is done below
     add_x_points=[min(bor_pos):mesh.probe_spacing/input.ncells_per_elec:max(bor_pos)];
 end
 
-%ensure we have all borehole positions in add_x_points
+% ensure we have all borehole positions in add_x_points
 add_x_points=[add_x_points bor_pos'];
 
-%FL: need to round before removing duplicate points,
-%otherwise some duplicate points may be considered as different due to rounding errors
+% round before removing duplicate points,
+% otherwise duplicate points may be considered as different due to rounding errors
 add_x_points=round(add_x_points/input.accuracy_threshold)*input.accuracy_threshold;
 
-%remove duplicate points
+% remove duplicate points
 add_x_points=unique(add_x_points);
 
-% if we have boreholes on edge's add left and right more parameters
 if add_bor_flag==1
-   add_x_points=[min(add_x_points)-2*mesh.probe_spacing min(add_x_points)-mesh.probe_spacing ...
-                 add_x_points ...
-                 max(add_x_points)+mesh.probe_spacing max(add_x_points)+2*mesh.probe_spacing];
+% if we have boreholes on edges, add two parameter cells on left and right
+   add_x_points=[ min(add_x_points)-2*mesh.probe_spacing min(add_x_points)-mesh.probe_spacing ...
+                  add_x_points ...
+                  max(add_x_points)+mesh.probe_spacing max(add_x_points)+2*mesh.probe_spacing ];
+   add_x_points=unique(add_x_points);
+else   % add just one parameter cell on left and right
+   add_x_points=[ min(add_x_points)-mesh.probe_spacing ...
+                  add_x_points ...
+                  max(add_x_points)+mesh.probe_spacing ];
    add_x_points=unique(add_x_points);
 end
 
@@ -339,93 +252,95 @@ mesh.orig_probe_z=tmp_ALL(:,2);
 mesh.num_probes=length(mesh.orig_probe_x);
 
 
-% Find probe coordiantes in numbering    
-    for i=1:input.num_mes
+ %-- Find probe coordinates in numbering
+ for i=1:input.num_mes
 
-        if input.m_array_type(i)==1      
-            for j=1:mesh.num_probes
-                if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; end
-                if (input.bx(i)==mesh.orig_probe_x(j) && input.bz(i)==mesh.orig_probe_z(j)) mesh.pb(i)=j; end
-                if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; end
-                if (input.nx(i)==mesh.orig_probe_x(j) && input.nz(i)==mesh.orig_probe_z(j)) mesh.pn(i)=j; end
+     if input.m_array_type(i)==1      
+        for j=1:mesh.num_probes
+            if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; end
+            if (input.bx(i)==mesh.orig_probe_x(j) && input.bz(i)==mesh.orig_probe_z(j)) mesh.pb(i)=j; end
+            if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; end
+            if (input.nx(i)==mesh.orig_probe_x(j) && input.nz(i)==mesh.orig_probe_z(j)) mesh.pn(i)=j; end
 
-%                if ( abs(input.ax(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
-%                     abs(input.az(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
-%                   mesh.pa(i)=j; end
-%                if ( abs(input.bx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
-%                     abs(input.bz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
-%                   mesh.pb(i)=j; end
-%                if ( abs(input.mx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
-%                     abs(input.mz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
-%                   mesh.pm(i)=j; end
-%
-%                if ( abs(input.nx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
-%                     abs(input.nz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
-%                   mesh.pn(i)=j; end
-            end
+            %if ( abs(input.ax(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
+            %     abs(input.az(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
+            %   mesh.pa(i)=j; end
+            %if ( abs(input.bx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
+            %     abs(input.bz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
+            %   mesh.pb(i)=j; end
+            %if ( abs(input.mx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
+            %     abs(input.mz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
+            %   mesh.pm(i)=j; end
+
+            %if ( abs(input.nx(i)-mesh.orig_probe_x(j))<input.accuracy_threshold && ...
+            %     abs(input.nz(i)-mesh.orig_probe_z(j))<input.accuracy_threshold )  ...
+            %   mesh.pn(i)=j; end
         end
+     end
 
-        if input.m_array_type(i)==2      
-            for j=1:mesh.num_probes
-                if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; mesh.pb(i)=0; end                
-                if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; end
-                if (input.nx(i)==mesh.orig_probe_x(j) && input.nz(i)==mesh.orig_probe_z(j)) mesh.pn(i)=j; end
-            end
+     if input.m_array_type(i)==2      
+        for j=1:mesh.num_probes
+            if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; mesh.pb(i)=0; end                
+            if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; end
+            if (input.nx(i)==mesh.orig_probe_x(j) && input.nz(i)==mesh.orig_probe_z(j)) mesh.pn(i)=j; end
         end
+     end
 
-        if input.m_array_type(i)==3      
-            for j=1:mesh.num_probes
-                if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; mesh.pb(i)=0; end
-                if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; mesh.pn(i)=0; end
-            end
+     if input.m_array_type(i)==3      
+        for j=1:mesh.num_probes
+            if (input.ax(i)==mesh.orig_probe_x(j) && input.az(i)==mesh.orig_probe_z(j)) mesh.pa(i)=j; mesh.pb(i)=0; end
+            if (input.mx(i)==mesh.orig_probe_x(j) && input.mz(i)==mesh.orig_probe_z(j)) mesh.pm(i)=j; mesh.pn(i)=0; end
         end
-    end
+     end
+ end
 
 
-    % A check point to see if pa pb pm pn are all ok
-    % Remember to check if zeros are found
-    if length(pa)~=input.num_mes || length(pb)~=input.num_mes || length(pm)~=input.num_mes || length(pn)~=input.num_mes  
-        disp('First error in measurment position');
-        pause
-    end
+ % A check point to see if pa pb pm pn are all ok
+ % Remember to check if zeros are found
+ if length(pa)~=input.num_mes || length(pb)~=input.num_mes || length(pm)~=input.num_mes || length(pn)~=input.num_mes  
+    disp('First error in measurment position');
+    pause
+ end
 
-    for i=1:input.num_mes
-        if input.m_array_type(i)==1
-          tmp=min(mesh.pa);
-          tmp=min(tmp,min(mesh.pb));
-          tmp=min(tmp,min(mesh.pm));
-          tmp=min(tmp,min(mesh.pn));
-          if tmp==0
-              disp('Something Went wrong');
-              pause
-          end
-        elseif input.m_array_type(i)==3
-          tmp=min(mesh.pa);
-          tmp=min(tmp,min(mesh.pm));
-          tmp=min(tmp,min(mesh.pn));
-          if tmp==0
-              disp('Something Went wrong');
-              pause
-          end
-        elseif    input.m_array_type(i)==4
-          tmp=min(mesh.pa);
-          tmp=min(tmp,min(mesh.pm));
-          if tmp==0
-              disp('Something Went wrong');
-              pause
-          end
-
+ for i=1:input.num_mes
+     if input.m_array_type(i)==1
+        tmp=min(mesh.pa);
+        tmp=min(tmp,min(mesh.pb));
+        tmp=min(tmp,min(mesh.pm));
+        tmp=min(tmp,min(mesh.pn));
+        if tmp==0
+           disp('Something Went wrong');
+           pause
         end
+     elseif input.m_array_type(i)==3
+        tmp=min(mesh.pa);
+        tmp=min(tmp,min(mesh.pm));
+        tmp=min(tmp,min(mesh.pn));
+        if tmp==0
+           disp('Something Went wrong');
+           pause
+        end
+     elseif    input.m_array_type(i)==4
+        tmp=min(mesh.pa);
+        tmp=min(tmp,min(mesh.pm));
+        if tmp==0
+           disp('Something Went wrong');
+           pause
+        end
+     end
 
-    end   %end for
+ end   %end for i=1:input.num_mes
 
 end   %end function mesh=find_probe_spacing(input)
+%----------------------------------------------------------------------%
 
 
 
+%----------------------------------------------------------------------%
 function mesh=find_max_n(input,mesh)
 
 mesh.depth_n=[];
+
 % Find surface max_n base on A and M 
 max_sr_n=max(sqrt((input.ax-input.mx).^2+(input.az-input.mz).^2));
 max_sr_n=int32(max_sr_n/mesh.probe_spacing);
@@ -479,9 +394,11 @@ end
 mesh.depth_n=double(int32(mesh.depth_n*1000))/1000;
 
 end   %end function mesh=find_max_n(input,mesh)
+%----------------------------------------------------------------------%
 
 
 
+%----------------------------------------------------------------------%
 %%FL: commented because not used
 %function mesh=custom_max_n(input,mesh)
 %
@@ -510,8 +427,16 @@ end   %end function mesh=find_max_n(input,mesh)
 %mesh.depth_n=double(int32(mesh.depth_n*1000))/1000;
 %
 %end
+%----------------------------------------------------------------------%
 
 
+
+%----------------------------------------------------------------------%
+%
+%   Function CALC_PARAM: define grid of parameters cells based on elec-
+%                        trode locations.
+%
+%----------------------------------------------------------------------%
 
 function [mesh]=calc_param(input,mesh)
 
@@ -541,7 +466,7 @@ end
 L=zeros(mesh.max_n,1);
 
 
-% Define boundaries
+%- Define boundaries
 if input.user_boundary_flag==1
    % define boundaries according to user-defined PML width
    left_boundary=min(mesh.add_x_points)-input.extra_width;
@@ -565,7 +490,9 @@ else
 end
 
 
+%-- Define coordinates of parameter cells
 tmp1=0;
+% loop over layers
 for i=1:mesh.max_n-1
 
     map=0;
@@ -585,9 +512,14 @@ for i=1:mesh.max_n-1
         mesh.tmp_param(tmp1,5)=d1;                      %y1
         mesh.tmp_param(tmp1,6)=d2;                      %y2
 
-        % put a margin of width=probe_spacing to the left and to the right of the model
-        if(J==L(i)+1) ;mesh.tmp_param(tmp1,3)=min(mesh.add_x_points)-mesh.probe_spacing;end                           % left
-        if(J==length(mesh.add_x_points)-L(i)-1) ;mesh.tmp_param(tmp1,4)=max(mesh.add_x_points)+mesh.probe_spacing;end % right 
+        %-- put a margin of width=probe_spacing to the left and to the right of the model
+        %FL: Commented because it modifies the cell defined above and create a cell that has twice the width of other cells.
+        %    This can cause problems in case of topography: as the mesher will link the vertices of this extra-width cell,
+        %    the 1st and last electrodes located between the vertices may not be on the surface anymore.
+        %    Instead, additional x-coords have been added to mesh.add_x_points in find_probe_spacing,
+        %    and they are treated just like other x-points here, resulting in additional parameter cells on left and right.
+        %if(J==L(i)+1); mesh.tmp_param(tmp1,3)=min(mesh.add_x_points)-mesh.probe_spacing; end                           % left
+        %if(J==length(mesh.add_x_points)-L(i)-1); mesh.tmp_param(tmp1,4)=max(mesh.add_x_points)+mesh.probe_spacing; end % right 
 
         mesh.tmp_param(tmp1,1)=(mesh.tmp_param(tmp1,3)+mesh.tmp_param(tmp1,4)) /2; % x center
         mesh.tmp_param(tmp1,2)=(d1+d2)/2;                                          % y center
@@ -595,22 +527,30 @@ for i=1:mesh.max_n-1
         mesh.param_x(tmp1,1)=(mesh.add_x_points(J)+mesh.add_x_points(J+1)) /2;
         mesh.param_y(tmp1,1)=(d1+d2)/2;
 
-   %    if(dp>depth_n_max) depth_n_max=dp;end
+        %if(dp>depth_n_max) depth_n_max=dp;end
      end   %end     for J=L(i)+1:length(mesh.add_x_points)-L(i)-1
 
-end   %end for i=1:mesh.max_n-1
+end   %-- end loop over layers (for i=1:mesh.max_n-1)
 
+%-- define nb of parameter (cells)
 mesh.num_param=tmp1;  
 
-%clear x_scaled
-end   %end function calc_param
+end   %-- end function calc_param
+%----------------------------------------------------------------------%
 
 
+
+%----------------------------------------------------------------------%
+%
+%   Function CREATE_MESH_GEN: generate finite-element mesh based on
+%                             parameter grid.
+%
+%----------------------------------------------------------------------%
 
 function mesh=create_mesh_gen(input,mesh)
 
-mesh.no_elm_per_param=zeros(mesh.num_param,1);
-
+% init.
+tmp=1;
 node=[];
 edge=[];
 faces=[];
@@ -618,9 +558,10 @@ icon=[];
 x_node_coord=[];
 y_node_coord=[];
 mesh.mes_nodes=[];
+mesh.no_elm_per_param=zeros(mesh.num_param,1);
 
 
-tmp=1;
+%-- loop over parameter cells
 for i=1:mesh.num_param
     
     node(tmp,1)=mesh.tmp_param(i,3); % x1
@@ -636,8 +577,7 @@ for i=1:mesh.num_param
     node(tmp,2)=mesh.tmp_param(i,6); % y2
     tmp=tmp+1;
 
-    % Interpolation points (i need the to add more elements within each
-    % parameter
+    % Interpolation points (add more elements within each parameter cell)
     node(tmp,1)=(mesh.tmp_param(i,3)+mesh.tmp_param(i,4))/2; %x1y1---x2y1
     node(tmp,2)=mesh.tmp_param(i,5);
     tmp=tmp+1;
@@ -657,7 +597,7 @@ for i=1:mesh.num_param
 end
 
 
-% Make sure we have nodes on the electrode positions
+%-- Make sure we have nodes on the electrode positions
 tmp_node(:,1)=mesh.orig_probe_x;
 tmp_node(:,2)=mesh.orig_probe_z;
 % remove duplicate points
@@ -665,7 +605,9 @@ node=union(node,tmp_node,'rows');
 
 clear tmp_node
 
-%Here add node_coordinates for boundary conditions
+
+%-- Add node_coordinates for boundary conditions
+%
 %    (1)--------------(2)                    (3)-----------(4)
 %     |                |                      |             |
 %     |                |                      |             |
@@ -675,8 +617,7 @@ clear tmp_node
 %     |                                                     |
 %    (7)---------------------------------------------------(8)
 
-
-% Ddefine boundaries
+%- define boundaries
 if input.user_boundary_flag==1
    % define boundaries according to user-defined PML width
    left_boundary=min(mesh.add_x_points)-input.extra_width;
@@ -734,7 +675,7 @@ tmp_node(8,2)=bottom;
 % remove duplicate points
 node=union(node,tmp_node,'rows'); 
 
-%FL: remove similar points up to accuracy threshold manually...
+% remove similar points up to accuracy threshold manually
 iduplicate=[];
 for inode=1:length(node)
     ifind=find( abs(node(:,1)-node(inode,1))<input.accuracy_threshold ...
@@ -746,18 +687,21 @@ end
 node(iduplicate,:)=[];
 
 
+
+%-- Create edges of parameter cells
+
+% init.
 tmp=1;
 tmp2=1;
-%now create the edges
-
 edge=zeros(4*mesh.num_param,2);
 for i=1:mesh.num_param+1
     faces{i}=[];
 end
 
-
+%-- loop over parameter cells
 for i=1:mesh.num_param
 
+    % cell vertices coordinates
     x1=mesh.tmp_param(i,3);
     x2=mesh.tmp_param(i,4);
     y1=mesh.tmp_param(i,5);
@@ -823,10 +767,11 @@ for i=1:mesh.num_param
         tmp2=tmp2+1;
     end        
 
-end   %end for i=1:mesh.num_param
+end   %-- end loop over parameter cells (for i=1:mesh.num_param)
 
 
-% Here create face for the boundary conditions
+%-- Create faces for the boundary conditions
+
 %1->2
 ind_x1=find(node(:,1)==left_boundary & node(:,2)==0);
 ind_x2=find(node(:,1)==min(mesh.tmp_param(:,3)) & node(:,2)==0);
@@ -900,56 +845,75 @@ faces{i+1}=[faces{i+1} tmp2];
 tmp2=tmp2+1;
 
 
-%%%FL WARNING /!\ here, orig_probe_x =/= mesh.orig_probe_x
-%%%extreme and intermediate values were added
-%orig_probe_x=unique(node(:,1));
-%save('orig_probe_x.mat','orig_probe_x');
-%
-%% call anaglyfo function
-%anaglyfo;
-%
-%h=gcf;
-%uiwait(h);
-%%close(h);
-%load('anaglyfo_data.mat');
-%% % % % topography here
+%-- Topography
+% init: no topo
+topo_nodes(:,1)=unique(node(:,1));
+topo_nodes(:,2)=0;
+
+%-- add topo
+if input.topo_flag==1
+   %- read topo file
+   topo=load(input.file_topo_in);
+
+   %- add topo values if missing at model ends
+   if topo_nodes(1,1) < topo(1,1)
+      topo=[ [topo_nodes(1,1);topo(:,1)] [topo(1,2);topo(:,2)] ];
+   end
+   if topo_nodes(end,1) > topo(end,1)
+      topo=[ [topo(:,1);topo_nodes(end,1)] [topo(:,2);topo(end,2)] ];
+   end
+
+   %- interpolate topo at node locations
+   topo_nodes(:,2)=interp1(topo(:,1),topo(:,2),topo_nodes(:,1),'linear');
+end
+
+% store in mesh structure
+mesh.topo_nodes=topo_nodes;
+
+if(input.debug==1) save('topo_nodes.mat','topo_nodes');end
 
 
-%%FL: replace call to anaglyfo
-%orig_probe_x=unique(node(:,1));
-%data(:,1)=orig_probe_x;
-%data(:,2)=0;
-anaglyfo_data(:,1)=unique(node(:,1));
-anaglyfo_data(:,2)=0;
-mesh.anaglyfo_data=anaglyfo_data;
-
-if(input.debug==1) save('anaglyfo_data.mat','anaglyfo_data');end
-
-
-% % % % Include topography in orig_probe_x
-% % % 
-for i=1:length(anaglyfo_data(:,1))
+%-- correct z-coordinates of electrodes for topography
+for i=1:length(topo_nodes(:,1))
     for j=1:length(mesh.orig_probe_x)
-        if mesh.orig_probe_x(j)==anaglyfo_data(i,1)
-            mesh.orig_probe_z(j)=mesh.orig_probe_z(j)-anaglyfo_data(i,2);
+        if abs(mesh.orig_probe_x(j)-topo_nodes(i,1)) < input.accuracy_threshold
+           mesh.orig_probe_z(j)=mesh.orig_probe_z(j)-topo_nodes(i,2);
         end
     end
 end
+
+
+%-- correct z-coordinates of nodes for topography (ie translate ALL nodes)
 tmp=unique(node(:,2));
-
+z_except1=tmp(end-1);   % bottom of physical model
+z_except2=bottom;       % bottom of total model, including boundary conditions
 for i=1:length(node(:,1))
-    for j=1:length(anaglyfo_data)
-         if node(i,1)==anaglyfo_data(j,1) && node(i,2)~=tmp(end-1)
-            node(i,2)=node(i,2)-anaglyfo_data(j,2);
+    flag_translated=0;
+    for j=1:length(topo_nodes)
+        if node(i,1)==topo_nodes(j,1) && node(i,2)==z_except1
+        %- translate bottom of physical model by constant shift (min. topo)
+           node(i,2)=node(i,2)-min(topo_nodes(:,2));
+           flag_translated=1;
+        elseif node(i,1)==topo_nodes(j,1) && node(i,2)==z_except2
+        %- translate bottom of total model by constant shift (mean topo)
+           node(i,2)=node(i,2)-mean(topo_nodes(:,2));
+           flag_translated=1;
+        elseif node(i,1)==topo_nodes(j,1)
+        %- translate other nodes by topo shift
+           node(i,2)=node(i,2)-topo_nodes(j,2);
+           flag_translated=1;
         end
+    end
+
+    %- check if node has well been translated
+    if input.topo_flag==1 && flag_translated==0
+       disp(sprintf('Node nb %d NOT corrected for topography.', i));
+       error('ABORT')
     end
 end
 
 
-clear gca
-
-
-% plot electrode locations
+%- plot electrode locations
 if input.plot_acqui==1
    figure
    plot(mesh.orig_probe_x,-mesh.orig_probe_z,'o');
@@ -958,7 +922,7 @@ if input.plot_acqui==1
 end
 
 
-% plot locations of all quadripoles
+%- plot locations of all quadripoles
 if input.plot_full_acqui==1
    figure
    hold on
@@ -990,7 +954,7 @@ options.output=input.mesh_option_output;
 warning off
 addpath ('mesh2d');
 
-% generate mesh
+%-- Generate mesh
 if numel(hdata.hmax)==0
    [p,t,fnum]=meshfaces(node,edge,faces,[],options);
 else
@@ -1029,13 +993,13 @@ mesh.icon(3,:)=t(:,3);
 mesh.icon(4,:)=fnum(:);
 
 
-%/* Find probe coordinates */
-
+%-- Find probe coordinates
 for i=1:mesh.num_probes
 
     % init min_dist for Algo 2
     min_dist=100*mesh.probe_spacing;
     min_j=mesh.num_nodes+1;   %init to impossible value
+    flag_found=0;
 
     for j=1:mesh.num_nodes
 
@@ -1049,6 +1013,7 @@ for i=1:mesh.num_probes
         if( abs(mesh.x_node_coord(j)-mesh.orig_probe_x(i))<input.accuracy_threshold && ...
             abs(mesh.y_node_coord(j)-mesh.orig_probe_z(i))<input.accuracy_threshold )
             mesh.mes_nodes(i)=j;
+            flag_found=1;
         end
 
         %%Algo 2 (FL): find closest node to electrode location
@@ -1061,9 +1026,13 @@ for i=1:mesh.num_probes
 
     end   %end for num_nodes
 
-    disp(sprintf('Coordinates found for electrode nb %d, j = %d', i, mesh.mes_nodes(i)));
-    %disp(sprintf('Coordinates found for electrode nb %d, j = %d / %d, dist = %f', i, min_j, mesh.mes_nodes(i), min_dist));
-
+    if flag_found==1
+       disp(sprintf('Coordinates found for electrode nb %d, j = %d', i, mesh.mes_nodes(i)));
+       %disp(sprintf('Coordinates found for electrode nb %d, j = %d / %d, dist = %f', i, min_j, mesh.mes_nodes(i), min_dist));
+    else
+       disp(sprintf('Coordinates NOT found for electrode nb %d', i));
+       error('ABORT')
+    end
 end   %end for num_probes
 disp(sprintf('\n'))
 
@@ -1082,8 +1051,7 @@ if length(mesh.mes_nodes)~=mesh.num_probes || min(mesh.mes_nodes)==0
 end
 
 
-%/* ******* FIND EBC NODES ********* */
-
+%-- Find EBC nodes
 left_ebc=find(mesh.x_node_coord(:)==min(mesh.x_node_coord));
 right_ebc=find(mesh.x_node_coord(:)==max(mesh.x_node_coord));
 bottom_ebc=find(mesh.y_node_coord(:)==max(mesh.y_node_coord));
@@ -1092,7 +1060,6 @@ mesh.node_ebc=union(left_ebc,right_ebc);
 mesh.node_ebc=union(mesh.node_ebc,bottom_ebc);
 
 mesh.num_ebc=length(mesh.node_ebc);
-
 
 for i=1:mesh.num_param
     k=0;
@@ -1105,7 +1072,7 @@ for i=1:mesh.num_param
 end
 
 
-% Find number of elements in each parameter
+%-- Find number of elements in each parameter
 for j=1:mesh.num_param
     [la la2]=find(mesh.param(j,:)~=0);
     mesh.no_elm_per_param(j)=length(la2);
@@ -1114,67 +1081,94 @@ end
 hold off
 
 end   %end function mesh=create_mesh_gen(input,mesh)
-
+%----------------------------------------------------------------------%
 
 	
 
-%--------------------------------------------------------------------------
-%                         MESH GRID DATA                                  |
-%--------------------------------------------------------------------------
+%----------------------------------------------------------------------%
+%
+%   Function CREATE_MESH_GRID: generate arrays of parameter coordinates.
+%
+%----------------------------------------------------------------------%
 
 function mesh=create_mesh_grid(input,mesh)
 
-% Add topography
+%-- Add topography
 %load('anaglyfo_data.mat');
-anaglyfo_data=mesh.anaglyfo_data;
-y_tmp=zeros(mesh.num_param,1);
+topo_nodes=mesh.topo_nodes;
+ytopo_param=zeros(mesh.num_param,1);
 
+%-- Define topographic correction for each parameter cell
 for i=1:mesh.num_param
-    %check for 1st parameter
-    if mesh.param_x(i)==min(mesh.param_x)
-        x_tmp=anaglyfo_data(3,1);
-        y_tmp(i)=anaglyfo_data(3,2);
-    elseif mesh.param_x(i)==max(mesh.param_x)
-        x_tmp=anaglyfo_data(end-2,1);
-        y_tmp(i)=anaglyfo_data(3,2);
+    x_tmp=mesh.param_x(i);
+    ind=find(topo_nodes(:,1)==x_tmp);
+    if length(ind)>0
+       ytopo_param(i)=topo_nodes(ind,2);
     else
-        x_tmp=mesh.param_x(i);
-        ind=find(anaglyfo_data(:,1)==x_tmp);
-        y_tmp(i)=anaglyfo_data(ind,2);
+       error(sprintf('Did not find ytopo for param. i, param_x(i) = %i, %f',i,mesh.param_x(i)));
     end
-
 end
 
 
+% model limits
 mesh.min_x=min(mesh.param_x);
 mesh.max_x=max(mesh.param_x);
 
-mesh.min_y=min(mesh.param_y-y_tmp);
-mesh.max_y=max(mesh.param_y-y_tmp);
-
+mesh.min_y=min(mesh.param_y-ytopo_param);
+mesh.max_y=max(mesh.param_y-ytopo_param);
 
 %xx=union(mesh.param_x, mesh.param_x); % take the unique x_line
-%yy=union(mesh.param_y-y_tmp, mesh.param_y-y_tmp); %take the unique y_line
+%yy=union(mesh.param_y-ytopo_param, mesh.param_y-ytopo_param); %take the unique y_line
 xx=unique(mesh.param_x);       % take the unique x_line
-yy=unique(mesh.param_y-y_tmp); % take the unique y_line
+yy=unique(mesh.param_y-ytopo_param); % take the unique y_line and correct for topo
 
+dx=xx(2)-xx(1);   % find the x step
+dy=yy(2)-yy(1);   % find the (min.) y_step
+yy=-yy;           % create y as negative
 
-tmp_x=xx(2)-xx(1);% find the x step
-tmp_y=yy(2)-yy(1);% find the y_step
-yy=-yy; %Now creative y as negative
+% create grid data
+[mesh.XI mesh.YI]=meshgrid(xx,yy);
 
-
-[mesh.XI mesh.YI]=meshgrid(xx,yy);% and now create the gridata 
-
-
-xnew=[mesh.min_x:tmp_x/2:mesh.max_x];
-ynew=[mesh.min_y:tmp_y/2:mesh.max_y];
+xnew=[mesh.min_x:dx/2:mesh.max_x];
+ynew=[mesh.min_y:dy/2:mesh.max_y];
 
 ynew=-ynew; %Anapoda giati einai arnitika
 [mesh.xxx,mesh.yyy]=meshgrid(xnew,ynew);
 
+% store topographic correction for each parameter (useful for later plots)
+mesh.param_ytopo=ytopo_param;
+mesh.dx=dx;
+mesh.dy=dy;
 
-mesh.y_tmp=y_tmp;
+
+%-- Define neighbours
+%FL, Sept. 2016: actually not used yet, but potentially useful...
+yy=unique(mesh.param_y); % take the unique y_line (without topographic correction)
+nx=length(xx);
+ny=length(yy);
+% loop over parameter cells
+for i=1:mesh.num_param
+
+  % unique indices of cell
+  ix=find( xx==mesh.param_x(i) );
+  iy=find( yy==mesh.param_y(i) );
+
+  % define ranges of x and y where to search for neighbours
+  % (taking boundaries into account)
+  xmin_search=xx( max(1, ix-1) );
+  xmax_search=xx( min(nx,ix+1) );
+  ymin_search=yy( max(1, iy-1) );
+  ymax_search=yy( min(ny,iy+1) );
+
+  % indices of neighbours
+  i_nbrs=find( mesh.param_x>=xmin_search & mesh.param_x<=xmax_search ...
+             & mesh.param_y>=ymin_search & mesh.param_y<=ymax_search ...
+             & ( mesh.param_x~=xx(ix) | mesh.param_y~=yy(iy) )       );
+             % (do not include cell in the list of neighbours)
+  mesh.nbrs{i}=i_nbrs;
+end
+
+
 % if bgr_res_flag==2
 %     
 %     figure;
@@ -1194,8 +1188,134 @@ mesh.y_tmp=y_tmp;
 %     
 % end
 
+end   %-- end function mesh=create_mesh_grid(input,mesh)
+%----------------------------------------------------------------------%
 
 
-end   %end function mesh=create_mesh_grid(input,mesh)
 
+%----------------------------------------------------------------------%
+%
+%   FUNCTION geometrical_factor: compute the geometrical factor K for
+%                                each quadripole of electrodes.
+%
+%----------------------------------------------------------------------%
+
+function mesh=geometrical_factor(input,mesh)
+
+% include first topography in ax and az coordinates
+% for i=1:input.num_mes
+%     for j=1:length(mesh.topo_nodes(:,1))
+%         if input.ax(i)==mesh.topo_nodes(j,1)
+%             input.az(i)=input.az(i)-topo_nodes(j,2);
+%         end
+%         if input.bx(i)==mesh.topo_nodes(j,1)
+%             input.bz(i)=input.bz(i)-topo_nodes(j,2);
+%         end
+%         if input.mx(i)==mesh.topo_nodes(j,1)
+%             input.mz(i)=input.mz(i)-topo_nodes(j,2);
+%         end
+%         if input.nx(i)==mesh.topo_nodes(j,1)
+%             input.nz(i)=input.nz(i)-topo_nodes(j,2);
+%         end
+%     end
+% end
+
+% init.
+VAM=zeros(input.num_mes,1);
+VAN=zeros(input.num_mes,1);
+VBM=zeros(input.num_mes,1);
+VBN=zeros(input.num_mes,1);
+
+
+%-- loop over data points/quadripoles
+for i=1:input.num_mes
+    if(input.m_array_type(i)==1 || input.m_array_type(i)==2)
+         aflag=1; bflag=1; mflag=1; nflag=1;
+    end
+
+    %- flags for Pole-Dipole array
+    if(input.m_array_type(i)==2)
+        aflag=1; bflag=0; mflag=1; nflag=1;
+    end
+
+    %- flags for Pole-Pole array
+    if(input.m_array_type(i)==3)
+          aflag=1; mflag=1; bflag=0; nflag=0;
+    end
+
+
+    if(aflag*mflag~=0)
+      r1=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (input.az(i)-input.mz(i))*(input.az(i)-input.mz(i)) );
+      r2=sqrt( (input.ax(i)-input.mx(i))*(input.ax(i)-input.mx(i)) + (-input.az(i)-input.mz(i))*(-input.az(i)-input.mz(i)) );
+      VAM(i)=(r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(aflag*nflag~=0)
+      r1=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (input.az(i)-input.nz(i))*(input.az(i)-input.nz(i)) );
+      r2=sqrt( (input.ax(i)-input.nx(i))*(input.ax(i)-input.nx(i)) + (-input.az(i)-input.nz(i))*(-input.az(i)-input.nz(i)) );
+      VAN(i)=(r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(bflag*mflag~=0)
+      r1=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (input.bz(i)-input.mz(i))*(input.bz(i)-input.mz(i)) );
+      r2=sqrt( (input.bx(i)-input.mx(i))*(input.bx(i)-input.mx(i)) + (-input.bz(i)-input.mz(i))*(-input.bz(i)-input.mz(i)) );
+      VBM(i)= (r1+r2)./(r1.*r2.*4*pi);
+    end
+
+    if(bflag*nflag~=0)
+      r1=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (input.bz(i)-input.nz(i))*(input.bz(i)-input.nz(i)) );
+      r2=sqrt( (input.bx(i)-input.nx(i))*(input.bx(i)-input.nx(i)) + (-input.bz(i)-input.nz(i))*(-input.bz(i)-input.nz(i)) );
+      VBN(i)= (r1+r2)./(r1.*r2.*4*pi);
+    end
+end   %-- end loop over data points/quadripoles
+
+
+%-- compute geometrical factor
+mesh.geofac=1./(VAM-VBM-VAN+VBN);
+clear VAM;clear VBM;clear VAN;clear VBN;clear r1;clear r2;
+
+if input.debug==1
+%- output geometrical factor for check
+   Mts=[[1:length(mesh.geofac)]' mesh.geofac];
+   save('geofac.dat','Mts','-ascii')
+end
+
+
+if input.data_type==2
+%if input data are resistances, convert them to resistivities
+   input.real_data=input.real_data.*mesh.geofac;
+   %pause
+end
+
+
+if input.time_lapse_flag==1
+    ind=find (input.d4_real_data<0);
+    if size(ind,1)~=0 && size(ind,2)~=-0
+        display('Negative resistivities in measurements');
+        ind
+        pause
+    end
+
+%FL /!\ Default values must match homogeneous background,
+%       otherwise solution is wrong
+% (now defined in separate routine define_mean_res.m)
+%%    mesh.mean_res=mean(mean(10.^(log10(input.d4_real_data))));  
+
+elseif input.time_lapse_flag==0
+    ind=find (input.real_data<0);
+    if size(ind,1)~=0 && size(ind,2)~=-0
+        display('Negative resistivities in measurements');
+        ind
+        pause
+    end
+
+%FL /!\ Default values must match homogeneous background,
+%       otherwise solution is wrong
+% (now defined in separate routine define_mean_res.m)
+%%    mesh.mean_res=(mean(10.^(log10(input.real_data))));
+
+end   %end if time_lapse_flag
+
+end   %-- end function mesh=geometrical_factor(input,mesh)
+%----------------------------------------------------------------------%
 

@@ -15,7 +15,7 @@ function [input,mesh,fem,final]=sensitivity_analysis(input,mesh)
  % define range for varying parameter
  % (here Lagrangian multiplier for drawing a L-curve)
  parameter_name='lagrn'
- parameter_range=[1e-5 1e-4 1e-3 1e-2 1e-1 1 1e1];
+ parameter_range=[1e-4 1e-3 1e-2 1e-1 1 1e1 1e2 1e3 1e4];
 
  %
  % LOOP OVER PARAMETER
@@ -49,10 +49,10 @@ function [input,mesh,fem,final]=sensitivity_analysis(input,mesh)
      % file names for final Matlab structures,
      % enabling to find any variable again
      input.output_variables=1;   % 1->save structures, 0->don't to avoid storing large files
-     input.file_input_struct=['struct_input_' parameter_name num2str(par_i) '.mat'];
-     input.file_mesh_struct=['struct_mesh_' parameter_name num2str(par_i) '.mat'];
-     %input.file_fem_struct=['struct_fem_' parameter_name num2str(par_i) '.mat'];   %usually big and not very useful
-     input.file_final_struct=['struct_final_' parameter_name num2str(par_i) '.mat'];
+     input.file_input_struct=['input_struct_' parameter_name num2str(par_i) '.mat'];
+     input.file_mesh_struct=['mesh_struct_' parameter_name num2str(par_i) '.mat'];
+     %input.file_fem_struct=['fem_struct_' parameter_name num2str(par_i) '.mat'];   %usually big and not very useful
+     input.file_final_struct=['final_struct_' parameter_name num2str(par_i) '.mat'];
 
      % RUN INVERSION
      [fem,final]=main(input,mesh);

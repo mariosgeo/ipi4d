@@ -95,6 +95,13 @@ NB: plot options should be disabled in 'plot_parameters' to use this
 ------------------------------------------------------------------------
 USING THE CODE FOR IMAGE-GUIDED INVERSION (IGI): 
 
+Image-guided inversion can be used by setting the variable 'input.image
+_guidance' to 1 or 2 in 'inversion_parameters.m'. 1 will make use of 4-
+dimensional smoothing (Zhou et al., 2014) while 2 makes use of directio-
+nal Laplacian filters (Lavoue et al., in prep).
+  /!\ Option 2 is still under development: stability and validity of the
+      results are not guaranteed.
+
 To use IGI, your Java version needs to be 1.7 (you must have installed
 Java SE JDK 7), and you must set up the following environment variables
 (in command line or in your .bashrc):
@@ -174,18 +181,27 @@ NB: if input.interp_model_flag=0, input model must match the mesh, with
        xA zA xB zB xM zM xN zN data_DC                 % DC data
   or   xA zA xB zB xM zM xN zN Re(data)  Im(data)      % SIP data (input.cmplx_flag=1)
   or   xA zA xB zB xM zM xN zN amp(data) phase(data)   % SIP data (input.cmplx_flag=2)
-    Values can be specified in terms of resistivities (input.data_type=1)
+    Data values can be specified in terms of resistivities (input.data_type=1)
   or resistances (input.data_type=2).
     For pole-pole or pole-dipole arrays, columns for B and N electrodes
   must be present but their coordinates must be identical for all data
   points (just put 0).
-    IP4DI can also read Res2Dinv data files (set input.res2d_flag=1 in
-  forward_parameters.m).
+
+  NB: z-coordinates must NOT contain topography. They must correspond to
+      depth below  (if >0) or elevation above (if <0) the topographic
+      surface, such that IP4DI can distinguish between surface (z=0) and
+      borehole (z=/=0) electrodes. Topography is provided separately
+      (see below).
 
 - Output data are delivered in the same format.
   If input.print_intermediate_results=1 is selected in
   inversion_parameters.m, synthetic data computed at intermediate
   iterations are appended in additional columns.
+
+- Topography must be specified in an input ASCII file of 2 columns with
+  x and z coordinates of topographic surface. If topographic points gi-
+  ven as input do not match electrode locations, topography will be li-
+  nearly interpolated at electrode and mesh node locations.
 
 - After mesh generation, a mesh file is delivered containing the Matlab
   structure of all mesh variables. This file can be read using
@@ -204,7 +220,8 @@ NB: if input.interp_model_flag=0, input model must match the mesh, with
   ponding image is assumed to span in the range [0:(nz-1)*h,0:(nx-1)*h]
   in the referential of IP4DI model, with h the grid step of the trai-
   ning image (which is generally more finely discretized than the re-
-  constructed model to capture the structures of interest).
+  constructed model to capture the structures of interest, hence the
+  storage in binary format to avoid large files).
 
 
 ------------------------------------------------------------------------
@@ -223,7 +240,7 @@ ly. Here are the most important ones:
 - Mesh:
     It is recommended to plot the mesh (using input.plot_mesh=1) in or-
   der to check its consistency. In particular, when using small models
-  (~1m), mesh generation may result in weird and useless refinement
+  (~1 m), mesh generation may result in weird and useless refinement
   around some electrodes.
 
 - Time-lapse:
@@ -236,14 +253,31 @@ ly. Here are the most important ones:
   version_parameters.m) to avoid loosing results in case of a crash be-
   fore the end of the inversion.
 
+- Topography is accounted for in the modelling only. The inverse problem
+  is still treated in a "flat" model, not corrected for topography. As a
+  consequence, in the presence of topography, spatial derivatives used
+  for Tikhonov regularization are not computed in the x and z-directions
+  anymore, but parallel and perpendicularly to the ground surface, such
+  that the induced smoothing is not strictly isotropic (this is not an
+  issue, it may even makes sense somehow, but be aware of it).
+    When adding image-guided, anisotropic smoothing in the presence of
+  topography, structure tensors must thus be extracted from a "flat"
+  training image, not corrected for topography (which is the case of un-
+  processed seismic or GPR sections).
+
 
 ------------------------------------------------------------------------
 KNOWN BUGS
 
+- /!\ IGI mode 2, using of directional Laplacian filters, is still under
+      development: stability and validity of the results not guaranteed.
 - /!\ IP inversion is not validated (should be OK but there might be
       bugs concerning the inversion of the 2nd component, ip_cnt=2).
 - /!\ ACT (Active Time Constraints) are not implemented (the GUI routine
       preprocessing.m should be adapted for use without the GUI).
+- IP4DI GUI version can also read Res2Dinv data files (input.res2d_flag=1
+  in forward_parameters.m). This functionality is not guaranteed in the
+  IGI no-GUI version.
 
 
 ------------------------------------------------------------------------
@@ -273,7 +307,15 @@ and avoid ending up with too many messy code versions:
 ------------------------------------------------------------------------
 LOG OF PAST MODIFICATIONS:
 
-- v2: April 20, 2016 (most recent version)
+- v2.3: 22 Nov. 2016 (most recent version)
+
+  - add a few more plotting tools.
+
+- v2.2: August 24, 2016 (most recent version)
+
+  - re-introduce topography into the IGI version.
+
+- v2: April 20, 2016
 
   - time-lapse inversion is now operational, and compatible with ACB and
     image guidance.
