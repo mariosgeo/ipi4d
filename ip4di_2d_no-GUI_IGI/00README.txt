@@ -95,6 +95,13 @@ NB: plot options should be disabled in 'plot_parameters' to use this
 ------------------------------------------------------------------------
 USING THE CODE FOR IMAGE-GUIDED INVERSION (IGI): 
 
+Image-guided inversion can be used by setting the variable 'input.image
+_guidance' to 1 or 2 in 'inversion_parameters.m'. 1 will make use of 4-
+dimensional smoothing (Zhou et al., 2014) while 2 makes use of directio-
+nal Laplacian filters (Lavoue et al., in prep).
+  /!\ Option 2 is still under development: stability and validity of the
+      results are not guaranteed.
+
 To use IGI, your Java version needs to be 1.7 (you must have installed
 Java SE JDK 7), and you must set up the following environment variables
 (in command line or in your .bashrc):
@@ -233,7 +240,7 @@ ly. Here are the most important ones:
 - Mesh:
     It is recommended to plot the mesh (using input.plot_mesh=1) in or-
   der to check its consistency. In particular, when using small models
-  (~1m), mesh generation may result in weird and useless refinement
+  (~1 m), mesh generation may result in weird and useless refinement
   around some electrodes.
 
 - Time-lapse:
@@ -262,6 +269,8 @@ ly. Here are the most important ones:
 ------------------------------------------------------------------------
 KNOWN BUGS
 
+- /!\ IGI mode 2, using of directional Laplacian filters, is still under
+      development: stability and validity of the results not guaranteed.
 - /!\ IP inversion is not validated (should be OK but there might be
       bugs concerning the inversion of the 2nd component, ip_cnt=2).
 - /!\ ACT (Active Time Constraints) are not implemented (the GUI routine
@@ -297,6 +306,10 @@ and avoid ending up with too many messy code versions:
 
 ------------------------------------------------------------------------
 LOG OF PAST MODIFICATIONS:
+
+- v2.3: 22 Nov. 2016 (most recent version)
+
+  - add a few more plotting tools.
 
 - v2.2: August 24, 2016 (most recent version)
 
