@@ -1137,6 +1137,8 @@ ynew=-ynew; %Anapoda giati einai arnitika
 
 % store topographic correction for each parameter (useful for later plots)
 mesh.param_ytopo=ytopo_param;
+mesh.dx=dx;
+mesh.dy=dy;
 
 
 %-- Define neighbours

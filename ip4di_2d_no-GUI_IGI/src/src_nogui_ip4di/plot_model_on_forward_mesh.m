@@ -14,8 +14,7 @@
 
 function plot_model_on_forward_mesh(input,mesh,model)
 
-figure
-hold on
+figure; hold on;
 
 %-- color (red, green, black)
 col=[1 0 0 ; 0 1 0 ; 1 1 1];
@@ -89,68 +88,7 @@ if input.debug>0
    scatter(mesh.node(:,1),mesh.node(:,2),'.','r');
 end
 
-axis equal;
-hleg=colorbar;
 
-%-- tune figure according to plotted component
-% default is amplitude
-input.plot_options.caxis=input.plot_options.caxis_amp;
-input.plot_options.axis_tics=input.plot_options.axis_tics_amp;
+%-- tune figure
+tune_figure;
 
-if input.plot_options.cmplx_flag==0
-%- DC case: just resistivity
-   ylabel(hleg,'Resistivity (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==1
-   ylabel(hleg,'Resistivity, real part (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==2 && input.sip_flag==1
-   ylabel(hleg,'Resistivity, imag. part (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==3
-   ylabel(hleg,'Resistivity, amplitude (\Omega.m)')
-
-elseif input.plot_options.cmplx_flag==4 && input.sip_flag==1
-   ylabel(hleg,'Resistivity, phase (mrad)')
-   input.plot_options.caxis=input.plot_options.caxis_phi;
-   input.plot_options.axis_tics=input.plot_options.axis_tics_phi;
-end
-
-if(numel(input.plot_options.cmap)>0); colormap(input.plot_options.cmap); end
-if(numel(input.plot_options.caxis)>0); caxis(input.plot_options.caxis); end
-if(numel(input.plot_options.axis_tics)>0); set(hleg,'YTick',input.plot_options.axis_tics); end
-if(numel(input.plot_options.label_title)>0); title(input.plot_options.label_title); end
-
-xlabel('x (m)')
-ylabel('z (m)')
-
-set(gca,'YDir','reverse');
-
-%
-xlim([min(mesh.tmp_param(:,3)) max(mesh.tmp_param(:,4))]);
-if numel(input.plot_options.z_min)>0 && numel(input.plot_options.z_max)>0
-   ylim([input.plot_options.z_min input.plot_options.z_max]);
-elseif input.topo_flag==0
-   ylim([min(mesh.tmp_param(:,5)) max(mesh.tmp_param(:,6))]);
-end
-
-%ylim([min(mesh.tmp_param(:,5))-min(mesh.anaglyfo_data(:,2)) max(mesh.tmp_param(:,6))-max(mesh.anaglyfo_data(:,2))]);
-%ylim([-max(mesh.tmp_param(:,6)) -min(mesh.tmp_param(:,5))]);
-
-%set(gca,'XTick',[min(mesh.tmp_param(:,3)):0.1:max(mesh.tmp_param(:,4))]);
-%set(gca,'YTick',[min(mesh.tmp_param(:,5)):0.1:max(mesh.tmp_param(:,6))]);
-
-%-- log scale
-if input.plot_options.plot_log==1
-   caxis(log10(input.plot_options.caxis))
-   set(hleg,'YTick',log10(input.plot_options.axis_tics));
-   set(hleg,'YTickLabel',input.plot_options.axis_tics);
-end
-
-%FL DEBUG
-if input.debug>0
-   disp_axis_tics=input.plot_options.axis_tics
-   disp_caxis=input.plot_options.caxis
-   min_rho=min(model)
-   max_rho=max(model)
-end

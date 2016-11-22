@@ -1,6 +1,6 @@
 #!/bin/bash
 
-il_Cinit=6   # line where to start reading file info_vs_it.txt
+il_Cinit=8   # line where to start reading file info_vs_it.txt
 
 LAGRN_LIST="0.0001 0.001 0.01 0.1 1 10 100 1000 10000"
 
@@ -36,8 +36,8 @@ echo "set ylabel 'C_D/C_{init}'" >> tmp_plot.gnu
 #echo "set log x" >> tmp_plot.gnu
 #echo "set log y" >> tmp_plot.gnu
 
-echo "set xrange [ 0:1]" >> tmp_plot.gnu
-echo "set yrange [ 0.05:2.05]" >> tmp_plot.gnu
+echo "set xrange [ 0:2]" >> tmp_plot.gnu
+echo "set yrange [ 0.05:1.05]" >> tmp_plot.gnu
 
 ##echo "set xtics 1,1,$nsteps" >> tmp_plot.gnu
 ##echo "set ytics (0.01,0.025,0.05,0.1,0.25,0.5,1.0)" >> tmp_plot.gnu

@@ -8,7 +8,10 @@ title="$1"
 echo TITLE = $title
 
 # choose to plot axes in m or wrt mesh indices
-plot_indices=1
+plot_indices=0
+
+# plot topo?
+plot_topo=0
 
 # geometry
 x0=-2.8240   # min(mesh.param_y)
@@ -20,14 +23,26 @@ dy=5
 # plot dimensions
 xmin=-10.0
 xmax=645.0
-ymin=-5.00
-ymax=72.50
+if [ $plot_topo == 1 ]; then
+   ymin=-550  #25  #-450
+   ymax=200
+
+   dytic=50
+   ytic_min=-550
+   ytic_max=200
+else
+   ymin=-5.00
+   ymax=72.50
+
+   dytic=20
+   ytic_min=0
+   ytic_max=650
+fi
 
 # tics
+dxtic=50
 xtic_min=0
 xtic_max=650
-ytic_min=0
-ytic_max=70
 
 # color scale
 cmin=-0.5
@@ -60,13 +75,14 @@ echo "set term postscript eps enhanced color" > tmp_plot.gnu
 echo "set output 'ellipses.eps'" >> tmp_plot.gnu
 
 echo "set palette gray negative" >> tmp_plot.gnu   #reverse colorbar
+#echo "set style fill transparent solid 0.5 noborder" >> tmp_plot.gnu
 
 echo "set size 1.4" >> tmp_plot.gnu
 echo "set size ratio $ratio" >> tmp_plot.gnu
 
 echo "set origin 0.0,0.0" >> tmp_plot.gnu
-echo "set grid" >> tmp_plot.gnu
-echo "show grid" >> tmp_plot.gnu
+#echo "set grid" >> tmp_plot.gnu
+#echo "show grid" >> tmp_plot.gnu
 
 echo "set pointsize 0.10" >> tmp_plot.gnu
 
@@ -76,7 +92,7 @@ echo "set x2label 'x (m)'" >> tmp_plot.gnu
 echo "set ylabel 'z (m)'" >> tmp_plot.gnu
 
 echo "set x2range [$xmin:$xmax]" >> tmp_plot.gnu
-echo "set yrange  [$ymin:$ymax] reverse" >> tmp_plot.gnu
+echo "set yrange  [$ymin:$ymax]" >> tmp_plot.gnu   #reverse
 echo "set cbrange [$cmin:$cmax]" >> tmp_plot.gnu
 
 echo "unset xtics" >> tmp_plot.gnu
@@ -88,10 +104,18 @@ echo "unset colorbox" >> tmp_plot.gnu
 ##echo "set cblabel 'Sand type'" >> tmp_plot.gnu
 
 # plot TI
-echo "plot '"$PWD"/"$file_TI"' u (\$1$cx:(\$2$cy:3 w image notitle axes x2y1, \\" >> tmp_plot.gnu
+if [ $plot_topo == 1 ]; then
+   echo "plot '"$PWD"/"$file_TI"' u (\$1$cx:(-\$2$cy:3 w points pt 5 ps 0.5 lc palette notitle axes x2y1, \\" >> tmp_plot.gnu
+else
+   echo "plot '"$PWD"/"$file_TI"' u (\$1$cx:(\$2$cy:3 w image notitle axes x2y1, \\" >> tmp_plot.gnu
+fi
 
 # plot ellipses
-echo "      '"$PWD"/"$file_ellipses"' u (\$1$cx:(\$2$cy with points lw 0.10 pt 7 lc 1 notitle axes x2y1" >> tmp_plot.gnu
+if [ $plot_topo == 1 ]; then
+   echo "      '"$PWD"/"$file_ellipses"' u (\$1$cx:(-\$2$cy w points pt 7 lw 0.10 lc 1 notitle axes x2y1" >> tmp_plot.gnu
+else
+   echo "      '"$PWD"/"$file_ellipses"' u (\$1$cx:(\$2$cy w points pt 7 lw 0.10 lc 1 notitle axes x2y1" >> tmp_plot.gnu
+fi
 
 # Gnuplot
 echo "load '"$PWD"/tmp_plot.gnu'" | gnuplot -persist
