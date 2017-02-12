@@ -23,6 +23,9 @@ please read the '0legal_statement.txt' file.
 This package is maintained under Git version control and the 'master'
 branch can be cloned from https://github.com/mariosgeo/ipi4d.
 
+For details on the Git management of the package and how to contribute,
+see 0README_Git.txt.
+
 Please feel free to contact the authors for any question, comment or
 suggestion.
 
@@ -33,5 +36,4 @@ Jieyi Zhou (jyzhou1990@gmail.com)
 Francois Lavoue (francois.lavoue@ens-lyon.org)
 Andre Revil (andre.revil@univ-smb.fr)
 
-Last updated by F. Lavoue, 22 Nov. 2016
-
+Last updated by F. Lavoue, 12 Feb. 2016
