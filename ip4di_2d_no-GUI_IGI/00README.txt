@@ -1,14 +1,13 @@
------------------------------------------------------------------------
+========================================================================
 
          IMAGE-GUIDED IP4DI without Graphical User Interface
             IGI   -   IP4DI   -   no GUI
 
------------------------------------------------------------------------
+========================================================================
 
-This is a modified version of M. Karaoulis' IP4DI program (MK, Colorado
-School of Mines), derived from Jieyi Zhou's version as of July 23, 2015
-(JZ, Colorado School of Mines), and modified by F. Lavoue (FL, Colorado
-School of Mines, francois.lavoue@ens-lyon.org).
+This is a modified version of M. Karaoulis' IP4DI program (MK), derived
+from Jieyi Zhou's version as of July 23, 2015 (JZ), and further modified
+by Francois Lavoue (FL).
 
 FL's modifications mainly concerned the Image-Guided Inversion (IGI)
 approach, using JZ's work and Dave Hale's (DH) Java routines for image
@@ -22,10 +21,10 @@ automatic sensitivity analysis and L-curves computation, for instance).
 
 Programs also have been heavily commented to facilitate readability and
 use. As a consequence, input files and main programs should now be self-
-explanatory. If not, feel free to address your questions to
-francois.lavoue@ens-lyon.org.
+explanatory. If not, feel free to contact me for any question.
 
 Francois Lavoue, December 8, 2015
+francois.lavoue@ens-lyon.org
 
 
 ------------------------------------------------------------------------
